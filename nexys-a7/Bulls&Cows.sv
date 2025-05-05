@@ -6,10 +6,9 @@ module Bulls&Cows (
     output logic[15:0] LED,  // leds dos resultados
     output logic [7:0] an, //aqui seleciona qual dos 8 displays q vai escreve
     output logic [6:0] digit // aqui é o numero q vai escreve, tipo 1100000, bagulho assim, o DP ignora
-
 );
 
-typedef enum logic [1:0] {
+typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
     READSECRET1,
     READSECRET2,
     GUESS,
@@ -24,15 +23,7 @@ always_ff @(posedge clock or posedge reset) begin
     if(reset)begin
     EA <= READSECRET1;
     end else
-    EA<= PE;
-end
-
-
-//FSM pra definir qual estado ir depois
-always_comb begin
-   case(EA)
-
-endcase
+    EA <= PE;
 end
 
 logic [15:0] P1SECRET;
@@ -47,6 +38,15 @@ logic [2:0] bulls;
 logic [2:0] cows;
 
 
+
+
+//FSM pra definir qual estado ir depois
+always_comb begin
+   case(EA)
+
+endcase
+end
+
 // bloco principal
 always @(posedge clock or posedge reset) begin
     if(reset)begin
@@ -54,100 +54,105 @@ always @(posedge clock or posedge reset) begin
         P2SECRET <= 0;  
         GUESS <= 0;
         enable <= 0;
-
+        bulls <= 0;
+        cows <= 0;
+        switchguess <= 0;
+    end    
     else begin
         case(EA)
-        READSECRET1:begin
+            enable <= 0;
 
-        enable <= 0;
-        P1SECRET <= SW;
-        v4 <= SW[15:12];
-        v3 <= SW[11:8];
-        v2 <= SW[7:4];
-        v1 <= SW[3:0];
-        //todos digitos tem que ser singulares, se forem iguais ele fica até receber diferentes
-        if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
-        
-        end
-        READSECRET2: begin
-        enable <= 0;
-        P2SECRET <= SW;
-        v4 <= SW[15:12];
-        v3 <= SW[11:8];
-        v2 <= SW[7:4];
-        v1 <= SW[3:0];
-        //todos digitos tem que ser singulares, se forem iguais ele fica até receber diferentes
-        if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
-        end
-        
-        GUESS: begin
-            if(switchguess == 0) begin // guess do player 1
-                enable <= 0;
-                GUESS <= SW;
+            READSECRET1:
+            begin
+                P1SECRET <= SW;             
                 v4 <= SW[15:12];
                 v3 <= SW[11:8];
                 v2 <= SW[7:4];
                 v1 <= SW[3:0];
+                //todos digitos tem que ser singulares, se forem iguais ele fica até receber diferentes
+                if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1) enable <= 1;
+            
+            end
+            
+            READSECRET2: 
+            begin
+                P2SECRET <= SW;         
+                v4 <= SW[15:12];
+                v3 <= SW[11:8];
+                v2 <= SW[7:4];
+                v1 <= SW[3:0];
+                //todos digitos tem que ser singulares, se forem iguais ele fica até receber diferentes
                 if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
-                if(enable)begin
-                    verifica <= 0;
-                    // v4 → posição 0
-                    //vai verificar se há bulls e/ou cows, se houver vai colocar null no local que houve essa incidencia e não fazer mais nada no clock
-                    // após isso vai voltar para cá e rever zerar o verifica e olhar de novo
-                    // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
-                if (v4 == P1SECRET[15:12] && verifica == 0) begin
-                    bulls <= bulls + 1;
-                    v4 <= null;
-                    verifica <= 1;
-                end else if (
-                    (v4 == P1SECRET[11:8] || v4 == P1SECRET[7:4] || v4 == P1SECRET[3:0]) && verifica == 0) begin
-                    cows <= cows + 1;
-                    v4 <= null;
-                    verifica <= 1;
+            end
+        
+            GUESS: 
+            begin
+                if(switchguess == 0) 
+                begin // guess do player 1
+                    enable <= 0;
+                    GUESS <= SW;
+                    v4 <= SW[15:12];
+                    v3 <= SW[11:8];
+                    v2 <= SW[7:4];
+                    v1 <= SW[3:0];
+                    if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
+
+                        if(enable)
+                        begin
+                                verifica <= 0;
+                                // v4 → posição 0
+                                //vai verificar se há bulls e/ou cows, se houver vai colocar null no local que houve essa incidencia e não fazer mais nada no clock
+                                // após isso vai voltar para cá e rever zerar o verifica e olhar de novo
+                                // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
+                            if (v4 == P1SECRET[15:12] && verifica == 0) begin
+                                bulls <= bulls + 1;
+                                v4 <= null;
+                                verifica <= 1;
+                            end else if (
+                                (v4 == P1SECRET[11:8] || v4 == P1SECRET[7:4] || v4 == P1SECRET[3:0]) && verifica == 0) begin
+                                cows <= cows + 1;
+                                v4 <= null;
+                                verifica <= 1;
+                            end
+                            // v3 → posição 1
+                            if (v3 == P1SECRET[11:8] && verifica == 0) begin
+                                bulls <= bulls + 1;
+                                v3 <= null;
+                                verifica <= 1;
+                            end else if (
+                                (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 0) begin
+                                cows <= cows + 1;
+                                v3 <= null;
+                                verifica <= 1;
+                            end
+
+                            // v2 → posição 2
+                            if (v2 == P1SECRET[7:4] && verifica == 0) begin
+                                bulls <= bulls + 1;
+                                v2 <= null;
+                                verifica <= 1;
+                            end else if (
+                                (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 0) begin
+                                cows <= cows + 1;
+                                v2 <= null;
+                                verifica <= 1;
+                            end
+
+                            // v1 → posição 3
+                            if (v1 == P1SECRET[3:0] && verifica == 0) begin
+                                bulls <= bulls + 1;
+                                v1 <= null;
+                                verifica <= 1;
+                            end else if ((v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 0 ) begin
+                                cows <= cows + 1;
+                                v1 <= null;
+                                verifica <= 1;
+                            end
+                        end
                 end
-                // v3 → posição 1
-                if (v3 == P1SECRET[11:8] && verifica == 0) begin
-                    bulls <= bulls + 1;
-                    v3 <= null;
-                    verifica <= 1;
-                end else if (
-                    (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 0) begin
-                    cows <= cows + 1;
-                    v3 <= null;
-                    verifica <= 1;
-                end
-
-                // v2 → posição 2
-                if (v2 == P1SECRET[7:4] && verifica == 0) begin
-                    bulls <= bulls + 1;
-                    v2 <= null;
-                    verifica <= 1;
-                end else if (
-                    (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 0) begin
-                    cows <= cows + 1;
-                    v2 <= null;
-                    verifica <= 1;
-                end
-
-                // v1 → posição 3
-                if (v1 == P1SECRET[3:0] && verifica == 0) begin
-                    bulls <= bulls + 1;
-                    v1 <= null;
-                    verifica <= 1;
-                end else if (
-                    (v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 0) begin
-                    cows <= cows + 1;
-                    v1 <= null;
-                    verifica <= 1;
-                end
-
-
-        end
-        end
-
-
+            end
         endcase
-        end
+    end
         
        
     end
