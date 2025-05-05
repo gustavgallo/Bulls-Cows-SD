@@ -139,6 +139,7 @@ always @(posedge clock or posedge reset) begin
                     cows <= cows + 1;
                     v1 <= null;
                     verifica <= 1;
+                    enable <= 0;
                 end
 
 
