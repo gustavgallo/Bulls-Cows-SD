@@ -42,6 +42,9 @@ logic [15:0] GUESS;
 logic [3:0] v1,v2,v3,v4;
 logic enable; // eu amo enable
 logic switchguess; // se o guess é do player 1 ou do player 2
+logic [2:0] bulls;
+logic [2:0] cows;
+
 
 // bloco principal
 always @(posedge clock or posedge reset) begin
@@ -85,7 +88,13 @@ always @(posedge clock or posedge reset) begin
                 v2 <= SW[7:4];
                 v1 <= SW[3:0];
                 if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
-                if(enable == 1) 
+                if(enable)begin
+
+
+
+
+
+                end 
                     
 
 
@@ -101,9 +110,44 @@ always @(posedge clock or posedge reset) begin
                 
     end
 
+    always_comb begin
+    logic [3:0] g1, g2, g3, g4;
+    logic [3:0] s1, s2, s3, s4;
 
+    bulls = 0;
+    cows = 0;
 
+    g4 = GUESS[15:12];
+    g3 = GUESS[11:8];
+    g2 = GUESS[7:4];
+    g1 = GUESS[3:0];
+
+    if (switchguess == 0) begin
+        s4 = P2SECRET[15:12];
+        s3 = P2SECRET[11:8];
+        s2 = P2SECRET[7:4];
+        s1 = P2SECRET[3:0];
+    end else begin
+        s4 = P1SECRET[15:12];
+        s3 = P1SECRET[11:8];
+        s2 = P1SECRET[7:4];
+        s1 = P1SECRET[3:0];
+    end
+
+    // BULLS
+    if (g1 == s1) bulls = bulls + 1;
+    if (g2 == s2) bulls = bulls + 1;
+    if (g3 == s3) bulls = bulls + 1;
+    if (g4 == s4) bulls = bulls + 1;
+
+    // COWS
+    if (g1 == s2 || g1 == s3 || g1 == s4) cows = cows + 1;
+    if (g2 == s1 || g2 == s3 || g2 == s4) cows = cows + 1;
+    if (g3 == s1 || g3 == s2 || g3 == s4) cows = cows + 1;
+    if (g4 == s1 || g4 == s2 || g4 == s3) cows = cows + 1;
 end
+
+
 
 
 
