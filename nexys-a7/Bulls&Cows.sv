@@ -90,6 +90,7 @@ always @(posedge clock or posedge reset) begin
                 v1 <= SW[3:0];
                 if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
                 if(enable)begin
+                    verifica <= 0;
                     // v4 → posição 0
                     //vai verificar se há bulls e/ou cows, se houver vai colocar null no local que houve essa incidencia e não fazer mais nada no clock
                     // após isso vai voltar para cá e rever zerar o verifica e olhar de novo
