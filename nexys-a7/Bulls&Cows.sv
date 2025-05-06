@@ -12,8 +12,9 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
     READSECRET1,
     READSECRET2,
     GUESS,
+    RESULT,
     PRINT,
-    RESULT
+    WIN
 } state_t;
 
 state_t EA, PE;
@@ -97,57 +98,62 @@ always @(posedge clock or posedge reset) begin
                     v1 <= SW[3:0];
                     if(v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1)enable <= 1;
 
+            RESULT:
                         if(enable)
                         begin
                                 verifica <= 0;
                                 // v4 → posição 0
-                                //vai verificar se há bulls e/ou cows, se houver vai colocar null no local que houve essa incidencia e não fazer mais nada no clock
+                                //vai verificar se há bulls e/ou cows, se houver vai colocar 4'd1111 no local que houve essa incidencia e não fazer mais nada no clock
                                 // após isso vai voltar para cá e rever zerar o verifica e olhar de novo
                                 // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
                             if (v4 == P1SECRET[15:12] && verifica == 0) begin
                                 bulls <= bulls + 1;
-                                v4 <= null;
+                                v4 <= 4'd1111;
                                 verifica <= 1;
                             end else if (
                                 (v4 == P1SECRET[11:8] || v4 == P1SECRET[7:4] || v4 == P1SECRET[3:0]) && verifica == 0) begin
                                 cows <= cows + 1;
-                                v4 <= null;
+                                v4 <= 4'd1111;
                                 verifica <= 1;
                             end
                             // v3 → posição 1
                             if (v3 == P1SECRET[11:8] && verifica == 0) begin
                                 bulls <= bulls + 1;
-                                v3 <= null;
+                                v3 <= 4'd1111;
                                 verifica <= 1;
                             end else if (
                                 (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 0) begin
                                 cows <= cows + 1;
-                                v3 <= null;
+                                v3 <= 4'd1111;
                                 verifica <= 1;
                             end
 
                             // v2 → posição 2
                             if (v2 == P1SECRET[7:4] && verifica == 0) begin
                                 bulls <= bulls + 1;
-                                v2 <= null;
+                                v2 <= 4'd1111;
                                 verifica <= 1;
                             end else if (
                                 (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 0) begin
                                 cows <= cows + 1;
-                                v2 <= null;
+                                v2 <= 4'd1111;
                                 verifica <= 1;
                             end
 
                             // v1 → posição 3
                             if (v1 == P1SECRET[3:0] && verifica == 0) begin
                                 bulls <= bulls + 1;
-                                v1 <= null;
+                                v1 <= 4'd1111;
                                 verifica <= 1;
                             end else if ((v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 0 ) begin
                                 cows <= cows + 1;
-                                v1 <= null;
+                                v1 <= 4'd1111;
                                 verifica <= 1;
                             end
+                        end
+                        else begin 
+                            switchguess <= ~switchguess;
+                            enable <= 0; 
                         end
                 end
             end
