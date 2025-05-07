@@ -20,11 +20,15 @@ localparam NULL = 4'b1111;
 
 typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
 
-    READSECRET1,
+    P1SETUP,
 
-    READSECRET2,
+    P2SETUP,
 
-    GUESS,
+    P1GUESS,
+
+    P2GUESS,
+
+    CHECK_IF_EQUAL,
 
     RESULT,
 
@@ -35,8 +39,7 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
 } state_t;
 
 
-
-state_t EA, PE;
+state_t EA, PE, UE;
 
 
 
@@ -46,7 +49,7 @@ always_ff @(posedge clock or posedge reset) begin
 
     if(reset)begin
 
-    EA <= READSECRET1;
+    EA <= P1SETUP;
 
     end else
 
@@ -60,13 +63,15 @@ logic [15:0] P1SECRET;
 
 logic [15:0] P2SECRET;
 
-logic [15:0] GUESS;
+logic [15:0] P1GUESS_reg;
 
-//verificadores
+logic [15:0] P2GUESS_reg;
 
-logic [3:0] v1,v2,v3,v4;
+logic is_diff = 0;
 
-logic enable; // eu amo enable
+logic enable_switch_players; // eu amo enable
+
+logic enable_guess_for_check; // eu amo enable
 
 logic switchguess; // se o guess é do player 1 ou do player 2
 
@@ -85,42 +90,70 @@ logic [2:0] cows;
 always_comb begin
 
    case(EA)
+    
+    P1SETUP: 
+    begin
+        UE = P1SETUP;
+        PE = CHECK_IF_EQUAL;
+    end
 
+    P2SETUP: 
+    begin 
+        UE = P2SETUP;
+        PE = CHECK_IF_EQUAL;
+    end
 
+    CHECK_IF_EQUAL: 
+    begin
+        if(is_diff) begin
+            if(UE == P1SETUP) begin PE = P2SETUP end
+            if(UE == P2SETUP) begin PE = P1GUESS end
+            if(UE == P1GUESS) begin PE = P2GUESS end
+            if(UE == P2GUESS) begin PE = P1GUESS end
+        end else begin
+            PE = UE;
+        end
+    end
+    READSECRET2:
+    begin 
+        if(enable_switch_players) begin PE = GUESS end
+        else begin 
+            enable_switch_players = 0;
+            PE = READSECRET2; 
+        end
+    end
+    GUESS:
+    begin 
+        if(enable_guess_for_check) 
+        begin 
+            PE = RESULT;
+        end else begin
+            PE = GUESS;
+        end
+    end
+    RESULT:
+    begin 
+
+    end
+    PRINT:
+    begin 
+
+    end
+    WIN:
+    begin 
+
+    end
 
 endcase
 
 end
 
-
-
-task automatic getSwitches(   // taskizinha para pegar os switches, pega o SW, coloca no registrador que tu mandar e separa nos Vx,     define se são iguais tambem, depois tem que ver como vamos fazer o enable (melhor trocar o nome pra ficar mais explicito o contexto)
-
-    input logic [15:0] SW,
-
-    output logic [15:0] VAR_REG,
-
-    output logic [3:0] v1, v2, v3, v4,
-
-    output logic enable
-
-);
-
-    VAR_REG = SW;
-
-    v4 = SW[15:12];
-
-    v3 = SW[11:8];
-
-    v2 = SW[7:4];
-
-    v1 = SW[3:0];
-
-    enable = (v4!=v3 && v4!=v2 && v4 != v1 && v3!= v1 && v3!=v2 && v2!= v1) ? 1 : 0;
-
-endtask
-
-
+always_comb begin
+        num1 < (SW[0], SW[1], SW[2], SW[3]);
+        num2 < (SW[4], SW[5], SW[6], SW[7]);
+        num3 < (SW[8], SW[9], SW[10], SW[11]);
+        num4 < (SW[12], SW[13], SW[14], SW[15]);
+end
 
 // bloco principal
 
@@ -134,7 +167,9 @@ always @(posedge clock or posedge reset) begin
 
         GUESS <= 0;
 
-        enable <= 0;
+        enable_guess_for_check <= 0;
+
+        enable_switch_players <= 0;
 
         bulls <= 0;
 
@@ -144,55 +179,54 @@ always @(posedge clock or posedge reset) begin
 
     end    
 
-    else begin
+    else begin // mudei, tava dentro do case por algum motivo
 
         case(EA)
 
-            enable <= 0; // não sei se rola deixar aqui, por enquanto não vou mudar
-
-
-
-            READSECRET1: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
+            P1SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
 
             begin
 
-                getSwitches(SW, P1SECRET, v1, v2, v3, v4, enable);
+                P1SECRET <= SW;
 
             end
 
-            
-
-            READSECRET2: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
+            P2SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
 
             begin
 
-                getSwitches(SW, P1SECRET, v1, v2, v3, v4, enable);
+                P2SECRET <= SW;
 
             end
 
-        
-
-            GUESS: // aqui seria preciso os v, mas podemos mudar caso seja necessario
-
+            CHECK_IF_EQUAL:
             begin
 
-                if(switchguess == 0) // falta o else, não sei se é uma boa fazer assim
-                begin // guess do player 1
-
-                    enable <= 0; // não sei pq ta aqui, decidi não mudar por enquanto
-
-                   getSwitches(SW, GUESS, v1, v2, v3, v4, enable);
-
+                if( num4 != num3 && num4 != num2 && num4 != num1 && num3 != num2 && num3 != num1 && num2 != num1 ) begin
+                    is_diff <= 1;
+                end else begin
+                    is_diff <= 0;
                 end
+
+            end
+
+
+
+            P1GUESS: // aqui seria preciso os v, mas podemos mudar caso seja necessario
+
+            begin
+                P1GUESS_reg <= SW;
+            end
+
+            P2GUESS: // aqui seria preciso os v, mas podemos mudar caso seja necessario
+
+            begin
+                P2GUESS_reg <= SW;
             end
 
             RESULT:
 
             begin
-
-                if(enable)
-
-                    begin
 
                     verifica <= 0;
 
@@ -292,17 +326,19 @@ always @(posedge clock or posedge reset) begin
 
                             end
 
-                        end
+                        switchguess <= ~switchguess;
 
-                        else begin 
-
-                            switchguess <= ~switchguess;
-
-                            enable <= 0; 
-
-                        end
+                        enable_guess_for_check <= 0; 
 
             end // end do result
+                PRINT:
+                begin
+
+                end
+                WIN:
+                begin
+
+                end
 
         endcase
 
