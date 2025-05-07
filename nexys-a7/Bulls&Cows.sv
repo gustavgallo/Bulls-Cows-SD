@@ -102,6 +102,17 @@ always_comb begin
         UE = P2SETUP;
         PE = CHECK_IF_EQUAL;
     end
+    P1GUESS:
+    begin
+        UE = P1GUESS;
+        PE = CHECK_IF_EQUAL;
+    end
+    P2GUESS:
+    begin
+        UE = P2GUESS;
+        PE = CHECK_IF_EQUAL;
+    end
+
 
     CHECK_IF_EQUAL: 
     begin
