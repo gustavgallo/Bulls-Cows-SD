@@ -93,58 +93,70 @@ always_comb begin
     
     P1SETUP: 
     begin
-        UE = P1SETUP;
-        PE = CHECK_IF_EQUAL;
+        UE <= P1SETUP;
+        PE <= CHECK_IF_EQUAL;
     end
 
     P2SETUP: 
     begin 
-        UE = P2SETUP;
-        PE = CHECK_IF_EQUAL;
+        UE <= P2SETUP;
+        PE <= CHECK_IF_EQUAL;
     end
     P1GUESS:
     begin
-        UE = P1GUESS;
-        PE = CHECK_IF_EQUAL;
+        UE <= P1GUESS;
+        PE <= CHECK_IF_EQUAL;
     end
     P2GUESS:
     begin
-        UE = P2GUESS;
-        PE = CHECK_IF_EQUAL;
+        UE <= P2GUESS;
+        PE <= CHECK_IF_EQUAL;
     end
 
 
     CHECK_IF_EQUAL: 
     begin
         if(is_diff) begin
-            if(UE == P1SETUP) begin PE = P2SETUP end
-            if(UE == P2SETUP) begin PE = P1GUESS end
-            if(UE == P1GUESS) begin PE = P2GUESS end
-            if(UE == P2GUESS) begin PE = P1GUESS end
+            if(UE == P1SETUP) begin PE <= P2SETUP end
+            if(UE == P2SETUP) begin PE <= P1GUESS end
+            if(UE == P1GUESS) begin PE <= RESULT end
+            if(UE == P2GUESS) begin PE <= RESULT end
         end else begin
-            PE = UE;
+            PE <= UE;
         end
     end
-    READSECRET2:
-    begin 
-        if(enable_switch_players) begin PE = GUESS end
-        else begin 
-            enable_switch_players = 0;
-            PE = READSECRET2; 
-        end
-    end
-    GUESS:
+    
+    P1GUESS:
     begin 
         if(enable_guess_for_check) 
         begin 
-            PE = RESULT;
+            switchguess <= 1;
+            PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
         end else begin
-            PE = GUESS;
+            PE <= P2GUESS; UE <= P1GUESS;
         end
+
+    end
+        P2GUESS:
+    begin 
+        if(enable_guess_for_check) 
+        begin 
+            switchguess <= 0;
+            PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
+        end else begin
+            PE <= P1GUESS; UE <= P2GUESS;
+        end
+        
     end
     RESULT:
     begin 
-
+        if(bulls == 4) begin
+            PE <= WIN; UE <= RESULT;
+        end else if (switchguess) begin
+            PE <= P2GUESS; UE <= RESULT;
+        end else begin
+            PE <= P1GUESS; UE <= RESULT;
+        end
     end
     PRINT:
     begin 
@@ -152,7 +164,11 @@ always_comb begin
     end
     WIN:
     begin 
-
+        if(confirma) begin
+            PE = P1SETUP; UE = P1SETUP;
+        end else begin
+            PE = WIN; UE = WIN;
+        end
     end
 
 endcase
@@ -197,7 +213,14 @@ always @(posedge clock or posedge reset) begin
             P1SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
 
             begin
-
+                an[7] <= 7'b0001100; // display P
+                an[6] <= 7'b1111001; // display 1
+                an[5] <= 7'b1111111; // display "espaço"
+                an[4] <= 7'b0100100; // display S
+                an[3] <= 7'b0000110; // display E
+                an[2] <= 7'b0001111; // display T
+                an[1] <= 7'b1000001; // display U
+                an[0] <= 7'b0001100; // display P
                 P1SECRET <= SW;
 
             end
@@ -205,7 +228,14 @@ always @(posedge clock or posedge reset) begin
             P2SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
 
             begin
-
+                an[7] <= 7'b0001100; // display P
+                an[6] <= 7'b0010010; // display 2
+                an[5] <= 7'b1111111; // display "espaço"
+                an[4] <= 7'b0100100; // display S
+                an[3] <= 7'b0000110; // display E
+                an[2] <= 7'b0001111; // display T
+                an[1] <= 7'b1000001; // display U
+                an[0] <= 7'b0001100; // display P
                 P2SECRET <= SW;
 
             end
@@ -239,7 +269,6 @@ always @(posedge clock or posedge reset) begin
 
             begin
 
-                    verifica <= 0;
 
                      // v4 → posição 0
 
@@ -255,7 +284,6 @@ always @(posedge clock or posedge reset) begin
 
                         v4 <= NULL; //agora NULL é um localparam para 4'b1111, ou seja, v4 <= 4'b1111, oq não pode ocorrer nos outros
 
-                        verifica <= 1;
 
                     end else if (
 
@@ -265,29 +293,24 @@ always @(posedge clock or posedge reset) begin
 
                         v4 <= NULL;
 
-                        verifica <= 1;
-
                     end
 
                     // v3 → posição 1
 
-                    if (v3 == P1SECRET[11:8] && verifica == 0) begin
+                    if (v3 == P1SECRET[11:8] && verifica == 1) begin
 
                         bulls <= bulls + 1;
 
                         v3 <= NULL;
 
-                        verifica <= 1;
 
                     end else if (
 
-                        (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 0) begin
+                        (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 1) begin
 
                         cows <= cows + 1;
 
                         v3 <= NULL;
-
-                        verifica <= 1;
 
                     end
 
@@ -295,23 +318,21 @@ always @(posedge clock or posedge reset) begin
 
                             // v2 → posição 2
 
-                            if (v2 == P1SECRET[7:4] && verifica == 0) begin
+                            if (v2 == P1SECRET[7:4] && verifica == 2) begin
 
                                 bulls <= bulls + 1;
 
                                 v2 <= NULL;
 
-                                verifica <= 1;
 
                             end else if (
 
-                                (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 0) begin
+                                (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 2) begin
 
                                 cows <= cows + 1;
 
                                 v2 <= NULL;
 
-                                verifica <= 1;
 
                             end
 
@@ -319,26 +340,24 @@ always @(posedge clock or posedge reset) begin
 
                             // v1 → posição 3
 
-                            if (v1 == P1SECRET[3:0] && verifica == 0) begin
+                            if (v1 == P1SECRET[3:0] && verifica == 3) begin
 
                                 bulls <= bulls + 1;
 
                                 v1 <= NULL;
 
-                                verifica <= 1;
 
-                            end else if ((v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 0 ) begin
+                            end else if ((v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 3 ) begin
 
                                 cows <= cows + 1;
 
                                 v1 <= NULL;
 
-                                verifica <= 1;
 
                             end
 
                         switchguess <= ~switchguess;
-
+                        verifica <= verifica + 1;
                         enable_guess_for_check <= 0; 
 
             end // end do result
