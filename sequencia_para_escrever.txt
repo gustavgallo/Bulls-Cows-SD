@@ -1,0 +1,61 @@
+// AN vai de 0 a 7 sempre, vou escrever a sequencia que temos que enviar dentro dos d para escrever cada coisa, lembrando que eles sempre começam e terminam com 1'b1 e a logica é inversa, ou seja, liga com 0.
+
+J1 SETUP = {d1: 1 4'h5 1 
+          d2: 1 4'h1 1  
+          d3: 1 4'h10 1
+          d4: 1 4'h6 1
+          d5: 1 4'h7
+          d6: 1 4'h8
+          d7: 1 4'h9
+          d8: 1 4'hA
+          }
+
+J2 SETUP = {d1: 1 4'h5 1
+          d2: 1 4'h2 1
+          d3: 1 4'h10 1
+          d4: 1 4'h6 1
+          d5: 1 4'h7 1
+          d6: 1 4'h8 1
+          d7: 1 4'h9 1
+          d8: 1 4'hA 1
+          }
+ 
+J1 GUESS = {d1: 1 4'h5 1
+          d2: 1 4'h1 1
+          d3: 1 4'h10 1
+          d4: 1 4'hF 1
+          d5: 1 4'h9 1
+          d6: 1 4'h7 1
+          d7: 1 4'h6 1
+          d8: 1 4'h6 1
+          }
+ 
+J2 GUESS = {d1: 1 4'h5 1
+          d2: 1 4'h2 1
+          d3: 1 4'h10 1
+          d4: 1 4'hF 1
+          d5: 1 4'h9 1
+          d6: 1 4'h7 1
+          d7: 1 4'h6 1
+          d8: 1 4'h6 1
+          }
+ 
+x C x B =  {d1: 1 num_cows 1
+          d2: 1 4'h10 1
+          d3: 1 4'hC 1
+          d4: 1 4'h10 1
+          d5: 1 num_bulls 1
+          d6: 1 4'hB 1
+          d7: 1 4'h10 1
+          d8: 1 4'h10 1
+          }
+ 
+BULLSEYE = {d1: 1 4'hB 1
+          d2: 1 4'h9 1
+          d3: 1 4'hD 1
+          d4: 1 4'hD 1
+          d5: 1 4'h6 1
+          d6: 1 4'h7 1
+          d7: 1 4'hE 1
+          d8: 1 4'h7 1
+          }

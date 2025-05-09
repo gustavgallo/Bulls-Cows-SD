@@ -14,8 +14,6 @@ module Bulls&Cows (
 
     output logic [7:0] digit // aqui é o numero q vai escreve, tipo 11000001, bagulho assim, o DP ignora
 
-    
-
 );
 
 localparam NULL = 4'b1111;
@@ -70,10 +68,6 @@ logic [15:0] P1GUESS_reg;
 logic [15:0] P2GUESS_reg;
 
 logic is_diff = 0;
-
-logic enable_switch_players; // eu amo enable
-
-logic enable_guess_for_check; // eu amo enable
 
 logic switchguess; // se o guess é do player 1 ou do player 2
 
@@ -196,10 +190,6 @@ always @(posedge clock or posedge reset) begin
 
         GUESS <= 0;
 
-        enable_guess_for_check <= 0;
-
-        enable_switch_players <= 0;
-
         bulls <= 0;
 
         cows <= 0;
@@ -212,32 +202,32 @@ always @(posedge clock or posedge reset) begin
 
         case(EA)
 
-            P1SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
-
+            P1SETUP: 
             begin
-                an[7] <= 7'b0001100; // display P
-                an[6] <= 7'b1111001; // display 1
-                an[5] <= 7'b1111111; // display "espaço"
-                an[4] <= 7'b0100100; // display S
-                an[3] <= 7'b0000110; // display E
-                an[2] <= 7'b0001111; // display T
-                an[1] <= 7'b1000001; // display U
-                an[0] <= 7'b0001100; // display P
+        //   J1 SETUP = {d1: 1 4'h5 1 
+        //               d2: 1 4'h1 1  
+        //               d3: 1 4'h10 1
+        //               d4: 1 4'h6 1
+        //               d5: 1 4'h7
+        //               d6: 1 4'h8
+        //               d7: 1 4'h9
+        //               d8: 1 4'hA
+        //               }
                 P1SECRET <= SW;
 
             end
 
-            P2SETUP: // precisa dos v1, v2... ? seria só para o if do enable? se for talvez seja melhor usar SW como matriz mesmo
-
+            P2SETUP: 
             begin
-                an[7] <= 7'b0001100; // display P
-                an[6] <= 7'b0010010; // display 2
-                an[5] <= 7'b1111111; // display "espaço"
-                an[4] <= 7'b0100100; // display S
-                an[3] <= 7'b0000110; // display E
-                an[2] <= 7'b0001111; // display T
-                an[1] <= 7'b1000001; // display U
-                an[0] <= 7'b0001100; // display P
+        //   J2 SETUP = {d1: 1 4'h5 1
+        //               d2: 1 4'h2 1
+        //               d3: 1 4'h10 1
+        //               d4: 1 4'h6 1
+        //               d5: 1 4'h7 1
+        //               d6: 1 4'h8 1
+        //               d7: 1 4'h9 1
+        //               d8: 1 4'hA 1
+        //               }
                 P2SECRET <= SW;
 
             end

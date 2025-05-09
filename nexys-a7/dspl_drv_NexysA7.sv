@@ -2,7 +2,7 @@ module dspl_drv_NexysA7
 #(parameter HALF_MS_COUNT = 50000)
 (
   input clock, reset,
-  input [5:0] d1, d2, d3, d4, d5, d6, d7, d8,
+  input [6:0] d1, d2, d3, d4, d5, d6, d7, d8, 
   output reg [7:0] an, dec_ddp
 );
 
@@ -46,65 +46,67 @@ module dspl_drv_NexysA7
         dig_selection <= dig_selection + 1;
       end
       
-      case (dig_selection)
+      case (dig_selection) 
         3'd0 : begin
-          selected_dig <= d1[4:0];
-          an <= {7'b1111111, ~d1[5]};
+          selected_dig <= d1[5:0];
+          an <= {7'b1111111, ~d1[6]};
         end
         3'd1 : begin
-          selected_dig <= d2[4:0];
-          an <= {6'b111111, ~d2[5], 1'b1};
+          selected_dig <= d2[5:0];
+          an <= {6'b111111, ~d2[6], 1'b1};
         end
         3'd2 : begin
-          selected_dig <= d3[4:0];
-          an <= {5'b11111, ~d3[5], 2'b11};
+          selected_dig <= d3[5:0];
+          an <= {5'b11111, ~d3[6], 2'b11};
         end
         3'd3 : begin
-          selected_dig <= d4[4:0];
-          an <= {4'b1111, ~d4[5], 3'b111};
+          selected_dig <= d4[5:0];
+          an <= {4'b1111, ~d4[6], 3'b111};
         end
         3'd4 : begin
-          selected_dig <= d5[4:0];
-          an <= {3'b111, ~d5[5], 4'b1111};
+          selected_dig <= d5[5:0];
+          an <= {3'b111, ~d5[6], 4'b1111};
         end
         3'd5 : begin
-          selected_dig <= d6[4:0];
-          an <= {2'b11, ~d6[5], 5'b11111};
+          selected_dig <= d6[5:0];
+          an <= {2'b11, ~d6[6], 5'b11111};
         end
         3'd6 : begin
-          selected_dig <= d7[4:0];
-          an <= {1'b1, ~d7[5], 6'b111111};
+          selected_dig <= d7[5:0];
+          an <= {1'b1, ~d7[6], 6'b111111};
         end
         default : begin
-          selected_dig <= d8[4:0];
-          an <= {~d8[5], 7'b1111111};
+          selected_dig <= d8[5:0];
+          an <= {~d8[6], 7'b1111111};
         end
       endcase
     end
   end
 
-  // digit 4-to-hex decoder
+  // digit 5-to-hex decoder
   always @*
   begin
-    case (selected_dig[4:1])
-      4'h0 : dec_ddp[7:1] = 7'b0000001; //0
-      4'h1 : dec_ddp[7:1] = 7'b1001111; //1
-      4'h2 : dec_ddp[7:1] = 7'b0010010; //2
-      4'h3 : dec_ddp[7:1] = 7'b0000110; //3
-      4'h4 : dec_ddp[7:1] = 7'b1001100; //4
-      4'h5 : dec_ddp[7:1] = 7'b1000111; //J
-      4'h6 : dec_ddp[7:1] = 7'b0100100; //S
-      4'h7 : dec_ddp[7:1] = 7'b0110000; //E
-      4'h8 : dec_ddp[7:1] = 7'b0001111; //T
-      4'h9 : dec_ddp[7:1] = 7'b0111110; //U
-      4'hA : dec_ddp[7:1] = 7'b0011000; //P
-      4'hB : dec_ddp[7:1] = 7'b1100000; //B
-      4'hC : dec_ddp[7:1] = 7'b0110001; //C
-      4'hD : dec_ddp[7:1] = 7'b1110001; //L
-      4'hE : dec_ddp[7:1] = 7'b1000100; //Y
-      default : dec_ddp[7:1] = 7'b1111111; //blank
+    case (selected_dig[5:1])
+      5'h0 : dec_ddp[7:1] = 7'b0000001; //0
+      5'h1 : dec_ddp[7:1] = 7'b1001111; //1
+      5'h2 : dec_ddp[7:1] = 7'b0010010; //2
+      5'h3 : dec_ddp[7:1] = 7'b0000110; //3
+      5'h4 : dec_ddp[7:1] = 7'b1001100; //4
+      5'h5 : dec_ddp[7:1] = 7'b1000111; //J
+      5'h6 : dec_ddp[7:1] = 7'b0100100; //S
+      5'h7 : dec_ddp[7:1] = 7'b0110000; //E
+      5'h8 : dec_ddp[7:1] = 7'b0001111; //T
+      5'h9 : dec_ddp[7:1] = 7'b0111110; //U
+      5'hA : dec_ddp[7:1] = 7'b0011000; //P
+      5'hB : dec_ddp[7:1] = 7'b1100000; //B
+      5'hC : dec_ddp[7:1] = 7'b0110001; //C
+      5'hD : dec_ddp[7:1] = 7'b1110001; //L
+      5'hE : dec_ddp[7:1] = 7'b1000100; //Y
+      5'hF : dec_ddp[7:1] = 7'b0100001; //G
+      5'h10: dec_ddp[7:1] = 7'b1111111; //" "
+      default : dec_ddp[7:1] = 7'b1111111; //blank // tem que mudar, não teria como entrar nele
     endcase
-    dec_ddp[0] = selected_dig[0];
+    dec_ddp[0] = selected_dig[0]; // desliga o pontinho lá, esqueci o nome dele
   end
 
 endmodule
