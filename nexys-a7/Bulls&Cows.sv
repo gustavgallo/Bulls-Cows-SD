@@ -8,11 +8,13 @@ module Bulls&Cows (
 
     input logic[15:0] SW,    // switches
 
-    output logic[15:0] LED,  // leds dos resultados
+    output logic[15:0] led,  // leds dos resultados
 
     output logic [7:0] an, //aqui seleciona qual dos 8 displays q vai escreve
 
-    output logic [6:0] digit // aqui é o numero q vai escreve, tipo 1100000, bagulho assim, o DP ignora
+    output logic [7:0] digit // aqui é o numero q vai escreve, tipo 11000001, bagulho assim, o DP ignora
+
+    
 
 );
 
