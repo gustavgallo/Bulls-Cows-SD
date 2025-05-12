@@ -1,4 +1,4 @@
-module Bulls&Cows (
+module BullsAndCows (
 
     input clock, //clock
 
@@ -10,9 +10,8 @@ module Bulls&Cows (
 
     output logic[15:0] led,  // leds dos resultados
 
-    output logic [7:0] an, //aqui seleciona qual dos 8 displays q vai escreve
-
-    output logic [7:0] digit // aqui é o numero q vai escreve, tipo 11000001, bagulho assim, o DP ignora
+    output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8; // aqui seleciona oq vai escrever em cada display
+    
 
 );
 
@@ -31,8 +30,6 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
     CHECK_IF_EQUAL,
 
     RESULT,
-
-    PRINT,
 
     WIN
 
@@ -76,9 +73,6 @@ logic verifica;
 logic [2:0] bulls;
 
 logic [2:0] cows;
-
-
-
 
 
 //FSM pra definir qual estado ir depois
@@ -154,10 +148,7 @@ always_comb begin
             PE <= P1GUESS; UE <= RESULT;
         end
     end
-    PRINT:
-    begin 
-
-    end
+    
     WIN:
     begin 
         if(confirma) begin
@@ -204,30 +195,14 @@ always @(posedge clock or posedge reset) begin
 
             P1SETUP: 
             begin
-        //   J1 SETUP = {d1: 1 4'h5 1 
-        //               d2: 1 4'h1 1  
-        //               d3: 1 4'h10 1
-        //               d4: 1 4'h6 1
-        //               d5: 1 4'h7
-        //               d6: 1 4'h8
-        //               d7: 1 4'h9
-        //               d8: 1 4'hA
-        //               }
+       
                 P1SECRET <= SW;
 
             end
 
             P2SETUP: 
             begin
-        //   J2 SETUP = {d1: 1 4'h5 1
-        //               d2: 1 4'h2 1
-        //               d3: 1 4'h10 1
-        //               d4: 1 4'h6 1
-        //               d5: 1 4'h7 1
-        //               d6: 1 4'h8 1
-        //               d7: 1 4'h9 1
-        //               d8: 1 4'hA 1
-        //               }
+      
                 P2SECRET <= SW;
 
             end
@@ -353,10 +328,8 @@ always @(posedge clock or posedge reset) begin
                         enable_guess_for_check <= 0; 
 
             end // end do result
-                PRINT:
-                begin
-
-                end
+               
+                
                 WIN:
                 begin
 
@@ -367,5 +340,87 @@ always @(posedge clock or posedge reset) begin
         end // end do else (reset)
 
     end // end do always
+
+    // aqui é o display, é pra funcionar, pois vai atualizar tds digitos assim que mudar o estado e o clock bater
+    always @(posedge clock) begin
+        case (EA)
+            P1SETUP: begin
+                d1 <= {1 + 4'h5 + 1};    // 'J'
+                d2 <= {1 + 4'h1 + 1};    // '1'
+                d3 <= {1 + 4'h10 + 1};   // espaço
+                d4 <= {1 + 4'h6 + 1};    // 'S'
+                d5 <= {1 + 4'h7 + 1};    // 'E'
+                d6 <= {1 + 4'h8 + 1};    // 'T'
+                d7 <= {1 + 4'h9 + 1};    // 'U'
+                d8 <= {1 + 4'hA + 1};    // 'P'
+            end
+
+            P2SETUP: begin
+                d1 <= {1 + 4'h5 + 1};    // 'J'
+                d2 <= {1 + 4'h2 + 1};    // '2'
+                d3 <= {1 + 4'h10 + 1};   // espaço
+                d4 <= {1 + 4'h6 + 1};    // 'S'
+                d5 <= {1 + 4'h7 + 1};    // 'E'
+                d6 <= {1 + 4'h8 + 1};    // 'T'
+                d7 <= {1 + 4'h9 + 1};    // 'U'
+                d8 <= {1 + 4'hA + 1};    // 'P'
+            end
+
+            P1GUESS: begin
+                d1 <= {1 + 4'h5 + 1};    // 'J'
+                d2 <= {1 + 4'h1 + 1};    // '1'
+                d3 <= {1 + 4'h10 + 1};   // espaço
+                d4 <= {1 + 4'hF + 1};    // 'G'
+                d5 <= {1 + 4'h9 + 1};    // 'U'
+                d6 <= {1 + 4'h7 + 1};    // 'E'
+                d7 <= {1 + 4'h6 + 1};    // 'S'
+                d8 <= {1 + 4'h6 + 1};    // 'S'
+            end
+
+            P2GUESS: begin
+                d1 <= {1 + 4'h5 + 1};    // 'J'
+                d2 <= {1 + 4'h2 + 1};    // '2'
+                d3 <= {1 + 4'h10 + 1};   // espaço
+                d4 <= {1 + 4'hF + 1};    // 'G'
+                d5 <= {1 + 4'h9 + 1};    // 'U'
+                d6 <= {1 + 4'h7 + 1};    // 'E'
+                d7 <= {1 + 4'h6 + 1};    // 'S'
+                d8 <= {1 + 4'h6 + 1};    // 'S'
+            end
+
+            RESULT: begin
+                d1 <= {1 + num_cows + 1};   // número de vacas (C)
+                d2 <= {1 + 4'h10 + 1};      // espaço
+                d3 <= {1 + 4'hC + 1};       // 'C'
+                d4 <= {1 + 4'h10 + 1};      // espaço
+                d5 <= {1 + num_bulls + 1};  // número de touros (B)
+                d6 <= {1 + 4'hB + 1};       // 'B'
+                d7 <= {1 + 4'h10 + 1};      // espaço
+                d8 <= {1 + 4'h10 + 1};      // espaço
+            end
+
+            WIN: begin
+                d1 <= {1 + 4'hB + 1};   // 'B'
+                d2 <= {1 + 4'h9 + 1};   // 'U'
+                d3 <= {1 + 4'hD + 1};   // 'L'
+                d4 <= {1 + 4'hD + 1};   // 'L'
+                d5 <= {1 + 4'h6 + 1};   // 'S'
+                d6 <= {1 + 4'h7 + 1};   // 'E'
+                d7 <= {1 + 4'hE + 1};   // 'Y'
+                d8 <= {1 + 4'h7 + 1};   // 'E'
+            end
+
+            default: begin
+                d1 <= {1 + 4'h10 + 1}; // espaço
+                d2 <= {1 + 4'h10 + 1}; // espaço
+                d3 <= {1 + 4'h10 + 1}; // espaço
+                d4 <= {1 + 4'h10 + 1}; // espaço
+                d5 <= {1 + 4'h10 + 1}; // espaço
+                d6 <= {1 + 4'h10 + 1}; // espaço
+                d7 <= {1 + 4'h10 + 1}; // espaço
+                d8 <= {1 + 4'h10 + 1}; // espaço
+            end
+        endcase
+    end
 
 endmodule
