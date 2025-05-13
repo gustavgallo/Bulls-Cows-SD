@@ -18,7 +18,7 @@ module BullsAndCows (
 localparam NULL = 4'b1111;
 
 typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
-
+    
     P1SETUP,
 
     P2SETUP,
@@ -66,6 +66,8 @@ logic [15:0] P2GUESS_reg;
 
 logic is_diff = 0;
 
+logic enable_guess_for_check = 0;
+
 logic switchguess; // se o guess é do player 1 ou do player 2
 
 logic verifica;
@@ -77,30 +79,38 @@ logic [2:0] cows;
 
 //FSM pra definir qual estado ir depois
 
-always_comb begin
+always_comb begin  // <= em comb?
 
    case(EA)
     
     P1SETUP: 
     begin
+        if(posedge confirma)begin
         UE <= P1SETUP;
         PE <= CHECK_IF_EQUAL;
+        end else PE <= P1SETUP;
     end
 
     P2SETUP: 
     begin 
+        if(posedge confirma)begin
         UE <= P2SETUP;
         PE <= CHECK_IF_EQUAL;
+        end else PE <= P2SETUP;
     end
     P1GUESS:
     begin
+        if(posedge confirma)begin
         UE <= P1GUESS;
         PE <= CHECK_IF_EQUAL;
+        end else PE <= P1GUESS;
     end
     P2GUESS:
     begin
+        if(posedge confirma)begin
         UE <= P2GUESS;
         PE <= CHECK_IF_EQUAL;
+        end else PE <= P2GUESS;
     end
 
 
@@ -140,6 +150,7 @@ always_comb begin
     end
     RESULT:
     begin 
+        if( posedge confirma) begin
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
         end else if (switchguess) begin
@@ -147,11 +158,12 @@ always_comb begin
         end else begin
             PE <= P1GUESS; UE <= RESULT;
         end
+        end else PE <= RESULT;
     end
     
     WIN:
     begin 
-        if(confirma) begin
+        if(posedge confirma) begin
             PE = P1SETUP; UE = P1SETUP;
         end else begin
             PE = WIN; UE = WIN;
@@ -220,16 +232,18 @@ always @(posedge clock or posedge reset) begin
 
 
 
-            P1GUESS: // aqui seria preciso os v, mas podemos mudar caso seja necessario
+            P1GUESS: 
 
             begin
                 P1GUESS_reg <= SW;
+                verifica <= 0;
             end
 
-            P2GUESS: // aqui seria preciso os v, mas podemos mudar caso seja necessario
+            P2GUESS: 
 
             begin
                 P2GUESS_reg <= SW;
+                verifica <= 0;
             end
 
             RESULT:
@@ -237,7 +251,7 @@ always @(posedge clock or posedge reset) begin
             begin
 
 
-                     // v4 → posição 0
+                     // num4 → posição 0
 
                      //vai verificar se há bulls e/ou cows, se houver vai colocar NULL no local que houve essa incidencia e não fazer mais nada no clock
 
@@ -245,88 +259,82 @@ always @(posedge clock or posedge reset) begin
 
                      // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
 
-                    if (v4 == P1SECRET[15:12] && verifica == 0) begin
+                    if (num4 == P1SECRET[15:12] && verifica == 0) begin
 
                         bulls <= bulls + 1;
 
-                        v4 <= NULL; //agora NULL é um localparam para 4'b1111, ou seja, v4 <= 4'b1111, oq não pode ocorrer nos outros
+                        num4 <= NULL; //agora NULL é um localparam para 4'b1111, ou seja, num4 <= 4'b1111, oq não pode ocorrer nos outros
 
 
                     end else if (
 
-                        (v4 == P1SECRET[11:8] || v4 == P1SECRET[7:4] || v4 == P1SECRET[3:0]) && verifica == 0) begin
+                        (num4 == P1SECRET[11:8] || num4 == P1SECRET[7:4] || num4 == P1SECRET[3:0]) && verifica == 0) begin
 
                         cows <= cows + 1;
 
-                        v4 <= NULL;
+                        num4 <= NULL;
 
                     end
 
-                    // v3 → posição 1
+                    // num3 → posição 1
 
-                    if (v3 == P1SECRET[11:8] && verifica == 1) begin
+                    if (num3 == P1SECRET[11:8] && verifica == 1) begin
 
                         bulls <= bulls + 1;
 
-                        v3 <= NULL;
+                        num3 <= NULL;
 
 
                     end else if (
 
-                        (v3 == P1SECRET[15:12] || v3 == P1SECRET[7:4] || v3 == P1SECRET[3:0]) && verifica == 1) begin
+                        (num3 == P1SECRET[15:12] || num3 == P1SECRET[7:4] || num3 == P1SECRET[3:0]) && verifica == 1) begin
 
                         cows <= cows + 1;
 
-                        v3 <= NULL;
+                        num3 <= NULL;
 
                     end
 
-
-
-                            // v2 → posição 2
-
-                            if (v2 == P1SECRET[7:4] && verifica == 2) begin
+                           // num2 → posição 2
+                            if (num2 == P1SECRET[7:4] && verifica == 2) begin
 
                                 bulls <= bulls + 1;
 
-                                v2 <= NULL;
+                                num2 <= NULL;
 
 
                             end else if (
 
-                                (v2 == P1SECRET[15:12] || v2 == P1SECRET[11:8] || v2 == P1SECRET[3:0]) && verifica == 2) begin
+                                (num2 == P1SECRET[15:12] || num2 == P1SECRET[11:8] || num2 == P1SECRET[3:0]) && verifica == 2) begin
 
                                 cows <= cows + 1;
 
-                                v2 <= NULL;
+                                num2 <= NULL;
 
 
                             end
 
 
 
-                            // v1 → posição 3
+                            // num1 → posição 3
 
-                            if (v1 == P1SECRET[3:0] && verifica == 3) begin
+                            if (num1 == P1SECRET[3:0] && verifica == 3) begin
 
                                 bulls <= bulls + 1;
 
-                                v1 <= NULL;
+                                num1 <= NULL;
 
 
-                            end else if ((v1 == P1SECRET[15:12] || v1 == P1SECRET[11:8] || v1 == P1SECRET[7:4]) && verifica == 3 ) begin
+                            end else if ((num1 == P1SECRET[15:12] || num1 == P1SECRET[11:8] || num1 == P1SECRET[7:4]) && verifica == 3 ) begin
 
                                 cows <= cows + 1;
 
-                                v1 <= NULL;
-
+                                num1 <= NULL;
 
                             end
 
-                        switchguess <= ~switchguess;
-                        verifica <= verifica + 1;
-                        enable_guess_for_check <= 0; 
-
+                                verifica <= verifica + 1;
+                                
             end // end do result
                
                 
