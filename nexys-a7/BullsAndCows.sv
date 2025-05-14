@@ -1,15 +1,10 @@
 module BullsAndCows (
 
     input clock, //clock
-
     input reset, // recomeça o jogo 
-
     input confirma, // botao pra confirmar
-
     input logic[15:0] SW,    // switches
-
-    output logic[15:0] led,  // leds dos resultados
-
+    //output logic[15:0] led,  // leds dos resultados, deixei comentado por enquanto
     output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8; // aqui seleciona oq vai escrever em cada display
     
 
@@ -31,6 +26,8 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
 
     RESULT,
 
+    PRINT_BC,
+
     WIN
 
 } state_t;
@@ -45,11 +42,8 @@ state_t EA, PE, UE;
 always_ff @(posedge clock or posedge reset) begin
 
     if(reset)begin
-
     EA <= P1SETUP;
-
     end else
-
     EA <= PE;
 
 end
@@ -76,16 +70,35 @@ logic [2:0] bulls;
 
 logic [2:0] cows;
 
+logic confirma_prev;      // Guarda o valor anterior do botão confirma
+logic confirma_rise;      // Indica se houve flanco de subida no botão confirma
+
+// Detecta o flanco de subida do botão confirma
+always_ff @(posedge clock or posedge reset) begin
+    if (reset)
+        confirma_prev <= 0;       // Zera ao resetar
+    else
+        confirma_prev <= confirma; // Atualiza com o valor atual do botão
+end
+
+// Sinal fica 1 apenas no ciclo em que o botão passa de 0 para 1, ou seja em apenas um clock, quando houver a troca de valores que ele vai dar em 1
+assign confirma_rise = confirma & ~confirma_prev;
+
+
 
 //FSM pra definir qual estado ir depois
 
-always_comb begin  // <= em comb?
+always @(posedge clock) begin  // botei em clock
 
    case(EA)
     
     P1SETUP: 
     begin
-       
+       if(confirma_rise) begin
+            PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
+        end else begin
+            PE <= P1SETUP; UE <= P1SETUP;
+        end
     end
 
     P2SETUP: 
@@ -261,7 +274,6 @@ always @(posedge clock or posedge reset) begin
                         (num4 == P1SECRET[11:8] || num4 == P1SECRET[7:4] || num4 == P1SECRET[3:0]) && verifica == 0) begin
 
                         cows <= cows + 1;
-
                         num4 <= NULL;
 
                     end
@@ -271,58 +283,38 @@ always @(posedge clock or posedge reset) begin
                     if (num3 == P1SECRET[11:8] && verifica == 1) begin
 
                         bulls <= bulls + 1;
-
                         num3 <= NULL;
-
 
                     end else if (
 
                         (num3 == P1SECRET[15:12] || num3 == P1SECRET[7:4] || num3 == P1SECRET[3:0]) && verifica == 1) begin
-
                         cows <= cows + 1;
-
                         num3 <= NULL;
 
                     end
 
                            // num2 → posição 2
                             if (num2 == P1SECRET[7:4] && verifica == 2) begin
-
                                 bulls <= bulls + 1;
-
                                 num2 <= NULL;
-
 
                             end else if (
 
                                 (num2 == P1SECRET[15:12] || num2 == P1SECRET[11:8] || num2 == P1SECRET[3:0]) && verifica == 2) begin
-
                                 cows <= cows + 1;
-
                                 num2 <= NULL;
 
-
                             end
-
-
-
                             // num1 → posição 3
-
                             if (num1 == P1SECRET[3:0] && verifica == 3) begin
-
                                 bulls <= bulls + 1;
-
                                 num1 <= NULL;
-
 
                             end else if ((num1 == P1SECRET[15:12] || num1 == P1SECRET[11:8] || num1 == P1SECRET[7:4]) && verifica == 3 ) begin
-
                                 cows <= cows + 1;
-
                                 num1 <= NULL;
 
                             end
-
                                 verifica <= verifica + 1;
                                 
             end // end do result
@@ -388,14 +380,14 @@ always @(posedge clock or posedge reset) begin
             end
 
             RESULT: begin
-                d2 <= {1 + 5'h10 + 1}; // espaço
-                d3 <= {1 + 5'h10 + 1}; // espaço
-                d4 <= {1 + 5'h10 + 1}; // espaço
-                d1 <= {1 + 5'h10 + 1}; // espaço
-                d5 <= {1 + 5'h10 + 1}; // espaço
-                d6 <= {1 + 5'h10 + 1}; // espaço
-                d7 <= {1 + 5'h10 + 1}; // espaço
                 d8 <= {1 + 5'h10 + 1}; // espaço
+                d7 <= {1 + 5'h10 + 1}; // espaço
+                d6 <= {1 + 5'h10 + 1}; // espaço
+                d5 <= {1 + 5'h10 + 1}; // espaço
+                d4 <= {1 + 5'h10 + 1}; // espaço
+                d3 <= {1 + 5'h10 + 1}; // espaço
+                d2 <= {1 + 5'h10 + 1}; // espaço
+                d1 <= {1 + 5'h10 + 1}; // espaço
 
             end
 
@@ -426,14 +418,14 @@ always @(posedge clock or posedge reset) begin
             end
 
             default: begin
-                d1 <= {1 + 5'h10 + 1}; // espaço
-                d2 <= {1 + 5'h10 + 1}; // espaço
-                d3 <= {1 + 5'h10 + 1}; // espaço
-                d4 <= {1 + 5'h10 + 1}; // espaço
-                d5 <= {1 + 5'h10 + 1}; // espaço
-                d6 <= {1 + 5'h10 + 1}; // espaço
-                d7 <= {1 + 5'h10 + 1}; // espaço
                 d8 <= {1 + 5'h10 + 1}; // espaço
+                d7 <= {1 + 5'h10 + 1}; // espaço
+                d6 <= {1 + 5'h10 + 1}; // espaço
+                d5 <= {1 + 5'h10 + 1}; // espaço
+                d4 <= {1 + 5'h10 + 1}; // espaço
+                d3 <= {1 + 5'h10 + 1}; // espaço
+                d2 <= {1 + 5'h10 + 1}; // espaço
+                d1 <= {1 + 5'h10 + 1}; // espaço
             end
         endcase
     end
