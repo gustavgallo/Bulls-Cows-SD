@@ -339,84 +339,101 @@ always @(posedge clock or posedge reset) begin
 
     end // end do always
 
-    // aqui é o display, é pra funcionar, pois vai atualizar tds digitos assim que mudar o estado e o clock bater
+    // aqui é o display, é pra funcionar, pois vai atualizar tds digitos assim que mudar o estado e o clock bater, pensei em fazer posedge EA, mas nao sei se funfa
     always @(posedge clock) begin
         case (EA)
             P1SETUP: begin
-                d1 <= {1 + 4'h5 + 1};    // 'J'
-                d2 <= {1 + 4'h1 + 1};    // '1'
-                d3 <= {1 + 4'h10 + 1};   // espaço
-                d4 <= {1 + 4'h6 + 1};    // 'S'
-                d5 <= {1 + 4'h7 + 1};    // 'E'
-                d6 <= {1 + 4'h8 + 1};    // 'T'
-                d7 <= {1 + 4'h9 + 1};    // 'U'
-                d8 <= {1 + 4'hA + 1};    // 'P'
+                d8 <= {1'b1, 5'h5, 1'b1};
+                d7 <= {1'b1, 5'h1, 1'b1};
+                d6 <= {1'b1, 5'h10, 1'b1};
+                d5 <= {1'b1, 5'h6, 1'b1};
+                d4 <= {1'b1, 5'h7, 1'b1};
+                d3 <= {1'b1, 5'h8, 1'b1};
+                d2 <= {1'b1, 5'h9, 1'b1};
+                d1 <= {1'b1, 5'hA, 1'b1};
+                
             end
 
             P2SETUP: begin
-                d1 <= {1 + 4'h5 + 1};    // 'J'
-                d2 <= {1 + 4'h2 + 1};    // '2'
-                d3 <= {1 + 4'h10 + 1};   // espaço
-                d4 <= {1 + 4'h6 + 1};    // 'S'
-                d5 <= {1 + 4'h7 + 1};    // 'E'
-                d6 <= {1 + 4'h8 + 1};    // 'T'
-                d7 <= {1 + 4'h9 + 1};    // 'U'
-                d8 <= {1 + 4'hA + 1};    // 'P'
+                d8 <= {1'b1, 5'h5, 1'b1};
+                d7 <= {1'b1, 5'h2, 1'b1};
+                d6 <= {1'b1, 5'h10, 1'b1};
+                d5 <= {1'b1, 5'h6, 1'b1};
+                d4 <= {1'b1, 5'h7, 1'b1};
+                d3 <= {1'b1, 5'h8, 1'b1};
+                d2 <= {1'b1, 5'h9, 1'b1};
+                d1 <= {1'b1, 5'hA, 1'b1};
             end
 
             P1GUESS: begin
-                d1 <= {1 + 4'h5 + 1};    // 'J'
-                d2 <= {1 + 4'h1 + 1};    // '1'
-                d3 <= {1 + 4'h10 + 1};   // espaço
-                d4 <= {1 + 4'hF + 1};    // 'G'
-                d5 <= {1 + 4'h9 + 1};    // 'U'
-                d6 <= {1 + 4'h7 + 1};    // 'E'
-                d7 <= {1 + 4'h6 + 1};    // 'S'
-                d8 <= {1 + 4'h6 + 1};    // 'S'
+                d8 <= {1'b1, 5'h5, 1'b1};
+                d7 <= {1'b1, 5'h1, 1'b1};
+                d6 <= {1'b1, 5'h10, 1'b1};
+                d5 <= {1'b1, 5'hF, 1'b1};
+                d4 <= {1'b1, 5'h9, 1'b1};
+                d3 <= {1'b1, 5'h7, 1'b1};
+                d2 <= {1'b1, 5'h6, 1'b1};
+                d1 <= {1'b1, 5'h6, 1'b1};
             end
 
             P2GUESS: begin
-                d1 <= {1 + 4'h5 + 1};    // 'J'
-                d2 <= {1 + 4'h2 + 1};    // '2'
-                d3 <= {1 + 4'h10 + 1};   // espaço
-                d4 <= {1 + 4'hF + 1};    // 'G'
-                d5 <= {1 + 4'h9 + 1};    // 'U'
-                d6 <= {1 + 4'h7 + 1};    // 'E'
-                d7 <= {1 + 4'h6 + 1};    // 'S'
-                d8 <= {1 + 4'h6 + 1};    // 'S'
+                d8 <= {1'b1, 5'h5, 1'b1};
+                d7 <= {1'b1, 5'h2, 1'b1};
+                d6 <= {1'b1, 5'h10, 1'b1};
+                d5 <= {1'b1, 5'hF, 1'b1};
+                d4 <= {1'b1, 5'h9, 1'b1};
+                d3 <= {1'b1, 5'h7, 1'b1};
+                d2 <= {1'b1, 5'h6, 1'b1};
+                d1 <= {1'b1, 5'h6, 1'b1};
             end
 
             RESULT: begin
-                d1 <= {1 + num_cows + 1};   // número de vacas (C)
-                d2 <= {1 + 4'h10 + 1};      // espaço
-                d3 <= {1 + 4'hC + 1};       // 'C'
-                d4 <= {1 + 4'h10 + 1};      // espaço
-                d5 <= {1 + num_bulls + 1};  // número de touros (B)
-                d6 <= {1 + 4'hB + 1};       // 'B'
-                d7 <= {1 + 4'h10 + 1};      // espaço
-                d8 <= {1 + 4'h10 + 1};      // espaço
+                d2 <= {1 + 5'h10 + 1}; // espaço
+                d3 <= {1 + 5'h10 + 1}; // espaço
+                d4 <= {1 + 5'h10 + 1}; // espaço
+                d1 <= {1 + 5'h10 + 1}; // espaço
+                d5 <= {1 + 5'h10 + 1}; // espaço
+                d6 <= {1 + 5'h10 + 1}; // espaço
+                d7 <= {1 + 5'h10 + 1}; // espaço
+                d8 <= {1 + 5'h10 + 1}; // espaço
+
+            end
+
+            PRINT_BC:begin
+                d8 <= {1'b1, bulls, 1'b1}; // num_bulls
+                d7 <= {1'b1, 5'h10, 1'b1}; // espaço
+                d6 <= {1'b1, 5'hB, 1'b1}; // B
+                d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
+                d4 <= {1'b1, 5'h10, 1'b1}; //espaço
+                d3 <= {1'b1, cows, 1'b1}; // num_cows
+                d2 <= {1'b1, 5'h10, 1'b1}; // espaço
+                d1 <= {1'b1, 5'hC, 1'b1}; // C
+
+
+
+
             end
 
             WIN: begin
-                d1 <= {1 + 4'hB + 1};   // 'B'
-                d2 <= {1 + 4'h9 + 1};   // 'U'
-                d3 <= {1 + 4'hD + 1};   // 'L'
-                d4 <= {1 + 4'hD + 1};   // 'L'
-                d5 <= {1 + 4'h6 + 1};   // 'S'
-                d6 <= {1 + 4'h7 + 1};   // 'E'
-                d7 <= {1 + 4'hE + 1};   // 'Y'
-                d8 <= {1 + 4'h7 + 1};   // 'E'
+                d8 <= {1'b1, 5'hB, 1'b1};
+                d7 <= {1'b1, 5'h9, 1'b1};
+                d6 <= {1'b1, 5'hD, 1'b1};
+                d5 <= {1'b1, 5'hD, 1'b1};
+                d4 <= {1'b1, 5'h6, 1'b1};
+                d3 <= {1'b1, 5'h7, 1'b1};
+                d2 <= {1'b1, 5'hE, 1'b1};
+                d1 <= {1'b1, 5'h7, 1'b1};
             end
 
             default: begin
-                d1 <= {1 + 4'h10 + 1}; // espaço
-                d2 <= {1 + 4'h10 + 1}; // espaço
-                d3 <= {1 + 4'h10 + 1}; // espaço
-                d4 <= {1 + 4'h10 + 1}; // espaço
-                d5 <= {1 + 4'h10 + 1}; // espaço
-                d6 <= {1 + 4'h10 + 1}; // espaço
-                d7 <= {1 + 4'h10 + 1}; // espaço
-                d8 <= {1 + 4'h10 + 1}; // espaço
+                d1 <= {1 + 5'h10 + 1}; // espaço
+                d2 <= {1 + 5'h10 + 1}; // espaço
+                d3 <= {1 + 5'h10 + 1}; // espaço
+                d4 <= {1 + 5'h10 + 1}; // espaço
+                d5 <= {1 + 5'h10 + 1}; // espaço
+                d6 <= {1 + 5'h10 + 1}; // espaço
+                d7 <= {1 + 5'h10 + 1}; // espaço
+                d8 <= {1 + 5'h10 + 1}; // espaço
             end
         endcase
     end

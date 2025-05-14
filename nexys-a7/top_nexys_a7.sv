@@ -24,6 +24,27 @@ dspl_drv_NexysA7 display(
     .dec_ddp(DIGIT)
 );
 
+// instancia o jogo bulls and cows
+BullsAndCows game(
+    .clock(clock),
+    .reset(reset),
+    .confirma(confirma),
+    .led(LED),
+    .SW(SW),
+    .d1(d1),
+    .d2(d2),
+    .d3(d3),
+    .d4(d4),
+    .d5(d5),
+    .d6(d6),
+    .d7(d7),
+    .d8(d8)
+);
+
+
+
+
+/*
 logic [3:0] count;
 always@ (posedge confirma)begin
 
@@ -100,36 +121,7 @@ case(count)
 endcase
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// instancia o jogo bulls and cows
-/*BullsAndCows game(
-    .clock(clock),
-    .reset(reset),
-    .confirma(confirma),
-    .led(LED),
-    .SW(SW),
-    .d1(d1),
-    .d2(d2),
-    .d3(d3),
-    .d4(d4),
-    .d5(d5),
-    .d6(d6),
-    .d7(d7),
-    .d8(d8)
-);*/
+*/
 
 
  
