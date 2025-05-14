@@ -153,9 +153,9 @@ always_comb begin  // <= em comb?
         if( posedge confirma) begin
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
-        end else if (switchguess) begin
+        end else if (switchguess && verifica == 4) begin
             PE <= P2GUESS; UE <= RESULT;
-        end else begin
+        end else if (!switchguess && verifica == 4) begin
             PE <= P1GUESS; UE <= RESULT;
         end
         end else PE <= RESULT;
@@ -236,6 +236,8 @@ always @(posedge clock or posedge reset) begin
 
             begin
                 P1GUESS_reg <= SW;
+                cows <= 0;;
+                bulls <= 0;
                 verifica <= 0;
             end
 
@@ -243,6 +245,8 @@ always @(posedge clock or posedge reset) begin
 
             begin
                 P2GUESS_reg <= SW;
+                bulls <= 0;
+                cows <=0;
                 verifica <= 0;
             end
 
