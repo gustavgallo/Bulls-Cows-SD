@@ -8,7 +8,7 @@ module dspl_drv_NexysA7
 
   reg ck_1KHz;
   reg [2:0] dig_selection;
-  reg [4:0] selected_dig;
+  reg [5:0] selected_dig;
   reg [31:0] count_50K;
 
   // 1KHz clock generation
@@ -96,7 +96,7 @@ module dspl_drv_NexysA7
       5'h6 : dec_ddp[7:1] = 7'b0100100; //S
       5'h7 : dec_ddp[7:1] = 7'b0110000; //E
       5'h8 : dec_ddp[7:1] = 7'b0001111; //T
-      5'h9 : dec_ddp[7:1] = 7'b0111110; //U
+      5'h9 : dec_ddp[7:1] = 7'b1000001; //U
       5'hA : dec_ddp[7:1] = 7'b0011000; //P
       5'hB : dec_ddp[7:1] = 7'b1100000; //B
       5'hC : dec_ddp[7:1] = 7'b0110001; //C
