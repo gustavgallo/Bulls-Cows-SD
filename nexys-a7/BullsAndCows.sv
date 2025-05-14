@@ -85,33 +85,14 @@ always_comb begin  // <= em comb?
     
     P1SETUP: 
     begin
-        if(posedge confirma)begin
-        UE <= P1SETUP;
-        PE <= CHECK_IF_EQUAL;
-        end else PE <= P1SETUP;
+       
     end
 
     P2SETUP: 
     begin 
-        if(posedge confirma)begin
-        UE <= P2SETUP;
-        PE <= CHECK_IF_EQUAL;
-        end else PE <= P2SETUP;
+      
     end
-    P1GUESS:
-    begin
-        if(posedge confirma)begin
-        UE <= P1GUESS;
-        PE <= CHECK_IF_EQUAL;
-        end else PE <= P1GUESS;
-    end
-    P2GUESS:
-    begin
-        if(posedge confirma)begin
-        UE <= P2GUESS;
-        PE <= CHECK_IF_EQUAL;
-        end else PE <= P2GUESS;
-    end
+   
 
 
     CHECK_IF_EQUAL: 
@@ -130,10 +111,10 @@ always_comb begin  // <= em comb?
     begin 
         if(enable_guess_for_check) 
         begin 
-            switchguess <= 1;
+            switchguess <= 0;
             PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
         end else begin
-            PE <= P2GUESS; UE <= P1GUESS;
+            PE <= P1GUESS; UE <= P1GUESS;
         end
 
     end
@@ -141,10 +122,10 @@ always_comb begin  // <= em comb?
     begin 
         if(enable_guess_for_check) 
         begin 
-            switchguess <= 0;
+            switchguess <= 1;
             PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
         end else begin
-            PE <= P1GUESS; UE <= P2GUESS;
+            PE <= P2GUESS; UE <= P2GUESS;
         end
         
     end
@@ -154,11 +135,16 @@ always_comb begin  // <= em comb?
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
         end else if (switchguess && verifica == 4) begin
-            PE <= P2GUESS; UE <= RESULT;
+            PE <= PRINT_BC; UE <= P1GUESS;
         end else if (!switchguess && verifica == 4) begin
-            PE <= P1GUESS; UE <= RESULT;
+            PE <= P1GUESS; UE <= P2GUESS;
         end
         end else PE <= RESULT;
+    end
+
+    PRINT_BC:
+    begin
+        
     end
     
     WIN:
