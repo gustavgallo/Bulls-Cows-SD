@@ -281,12 +281,7 @@ always @(posedge clock or posedge reset) begin
                 verifica <= 0;
             end
 
-            RESULT:
-
-            begin
-
-
-                     // num4 → posição 0
+            RESULT: // num4 → posição 0
 
                      //vai verificar se há bulls e/ou cows, se houver vai colocar NULL no local que houve essa incidencia e não fazer mais nada no clock
 
@@ -294,67 +289,80 @@ always @(posedge clock or posedge reset) begin
 
                      // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
 
-                    if (num4 == P1SECRET[15:12] && verifica == 0) begin
+            begin
+                case(verifica) // não testei na fpga, mudei pra ficar mais facil de ler, pode ter algum erro de sintaxe, logica acho dificil ter
+                    0: begin
+                        if (num4 == P1SECRET[15:12]) begin
 
                         bulls <= bulls + 1;
 
                         num4 <= NULL; //agora NULL é um localparam para 4'b1111, ou seja, num4 <= 4'b1111, oq não pode ocorrer nos outros
 
+                        end else if (
 
-                    end else if (
-
-                        (num4 == P1SECRET[11:8] || num4 == P1SECRET[7:4] || num4 == P1SECRET[3:0]) && verifica == 0) begin
+                        (num4 == P1SECRET[11:8] || num4 == P1SECRET[7:4] || num4 == P1SECRET[3:0])) begin
 
                         cows <= cows + 1;
                         num4 <= NULL;
-
+                        end
+                        verifica <= verifica + 1;
                     end
+                    1: begin
+                        if (num3 == P1SECRET[11:8]) begin
 
-                    // num3 → posição 1
+                            bulls <= bulls + 1;
+                            num3 <= NULL;
 
-                    if (num3 == P1SECRET[11:8] && verifica == 1) begin
+                        end else if (
 
-                        bulls <= bulls + 1;
-                        num3 <= NULL;
-
-                    end else if (
-
-                        (num3 == P1SECRET[15:12] || num3 == P1SECRET[7:4] || num3 == P1SECRET[3:0]) && verifica == 1) begin
-                        cows <= cows + 1;
-                        num3 <= NULL;
-
+                            (num3 == P1SECRET[15:12] || num3 == P1SECRET[7:4] || num3 == P1SECRET[3:0])) begin
+                            cows <= cows + 1;
+                            num3 <= NULL;
+                        end
+                        verifica <= verifica + 1;
                     end
-
-                           // num2 → posição 2
-                            if (num2 == P1SECRET[7:4] && verifica == 2) begin
+                    2: begin
+                        if (num2 == P1SECRET[7:4]) begin
                                 bulls <= bulls + 1;
                                 num2 <= NULL;
 
                             end else if (
 
-                                (num2 == P1SECRET[15:12] || num2 == P1SECRET[11:8] || num2 == P1SECRET[3:0]) && verifica == 2) begin
+                                (num2 == P1SECRET[15:12] || num2 == P1SECRET[11:8] || num2 == P1SECRET[3:0])) begin
                                 cows <= cows + 1;
                                 num2 <= NULL;
-
                             end
-                            // num1 → posição 3
+                            verifica <= verifica + 1;
+                    end
+                    3: begin
+                         // num1 → posição 3
                             if (num1 == P1SECRET[3:0] && verifica == 3) begin
                                 bulls <= bulls + 1;
                                 num1 <= NULL;
 
-                            end else if ((num1 == P1SECRET[15:12] || num1 == P1SECRET[11:8] || num1 == P1SECRET[7:4]) && verifica == 3 ) begin
+                            end else if ((num1 == P1SECRET[15:12] || num1 == P1SECRET[11:8] || num1 == P1SECRET[7:4])) begin
                                 cows <= cows + 1;
                                 num1 <= NULL;
-
                             end
-                                verifica <= verifica + 1;
-                                
+                            verifica <= verifica + 1;
+                    end
+                    4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
+                        d8 <= {1'b1, bulls, 1'b1}; // num_bulls
+                        d7 <= {1'b1, 5'h10, 1'b1}; // espaço
+                        d6 <= {1'b1, 5'hB, 1'b1}; // B
+                        d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
+                        d4 <= {1'b1, 5'h10, 1'b1}; //espaço
+                        d3 <= {1'b1, cows, 1'b1}; // num_cows
+                        d2 <= {1'b1, 5'h10, 1'b1}; // espaço
+                        d1 <= {1'b1, 5'hC, 1'b1}; // C
+                    end
+                endcase       
             end // end do result
                
                 
                 WIN:
                 begin
-
+                    //ganhou!!! parabens
                 end
 
         endcase
