@@ -5,9 +5,7 @@ module BullsAndCows (
     input confirma, // botao pra confirmar
     input logic[15:0] SW,    // switches
     //output logic[15:0] led,  // leds dos resultados, deixei comentado por enquanto
-    output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8; // aqui seleciona oq vai escrever em cada display
-    
-
+    output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8 // aqui seleciona oq vai escrever em cada display
 );
 
 localparam NULL = 4'b1111;
@@ -144,7 +142,7 @@ always @(posedge clock) begin  // botei em clock
     end
     RESULT:
     begin 
-        if( posedge confirma) begin
+        if( confirma_rise ) begin
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
         end else if (switchguess && verifica == 4) begin
@@ -162,7 +160,7 @@ always @(posedge clock) begin  // botei em clock
     
     WIN:
     begin 
-        if(posedge confirma) begin
+        if(confirma_rise ) begin
             PE = P1SETUP; UE = P1SETUP;
         end else begin
             PE = WIN; UE = WIN;
