@@ -3,7 +3,7 @@ module top_nexys_a7 (
     input clock, //clock
     input reset, // recomeça o jogo 
     input confirma, // botao pra confirmar
-    //input logic[15:0] SW,    // switches
+    input logic[15:0] SW,    // switches
     output logic[15:0] LED,  // leds dos resultado
     output logic [7:0] AN, //aqui seleciona qual dos 8 displays q vai escreve
     output logic [7:0] DIGIT // aqui é o numero q vai escreve, tipo 1100000, bagulho assim, o DP ignora

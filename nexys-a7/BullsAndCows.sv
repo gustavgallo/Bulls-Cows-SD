@@ -4,7 +4,7 @@ module BullsAndCows (
     input reset, // recomeça o jogo 
     input confirma, // botao pra confirmar
     input logic[15:0] SW,    // switches
-    //output logic[15:0] led,  // leds dos resultados, deixei comentado por enquanto
+    output logic[15:0] led,  // leds dos resultados, deixei comentado por enquanto
     output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8 // aqui seleciona oq vai escrever em cada display
 );
 
@@ -52,9 +52,9 @@ logic [15:0] P1SECRET;
 
 logic [15:0] P2SECRET;
 
-logic [15:0] P1GUESS_reg;
+//logic [15:0] //P1GUESS_reg;
 
-logic [15:0] P2GUESS_reg;
+//logic [15:0] //P2GUESS_reg;
 
 logic is_diff = 0;
 
@@ -68,21 +68,32 @@ logic [2:0] bulls;
 
 logic [2:0] cows;
 
-logic confirma_prev;      // Guarda o valor anterior do botão confirma
-logic confirma_rise;      // Indica se houve flanco de subida no botão confirma
+// logic confirma_prev;      // Guarda o valor anterior do botão confirma
+// logic confirma_rise;      // Indica se houve flanco de subida no botão confirma
 
-// Detecta o flanco de subida do botão confirma
+// // Detecta o flanco de subida do botão confirma
+// always_ff @(posedge clock or posedge reset) begin
+//     if (reset)
+//         confirma_prev <= 0;       // Zera ao resetar
+//     else
+//         confirma_prev <= confirma; // Atualiza com o valor atual do botão
+// end
+
+// // Sinal fica 1 apenas no ciclo em que o botão passa de 0 para 1, ou seja em apenas um clock, quando houver a troca de valores que ele vai dar em 1
+// assign confirma_rise = confirma & ~confirma_prev;
+
+logic confirma_prev = 0;
+logic confirma_rise = 0;
+
 always_ff @(posedge clock or posedge reset) begin
-    if (reset)
-        confirma_prev <= 0;       // Zera ao resetar
-    else
-        confirma_prev <= confirma; // Atualiza com o valor atual do botão
+    if (reset) begin
+        confirma_prev <= 0;
+        confirma_rise <= 0;
+    end else begin
+        confirma_rise <= confirma & ~confirma_prev;
+        confirma_prev <= confirma;
+    end
 end
-
-// Sinal fica 1 apenas no ciclo em que o botão passa de 0 para 1, ou seja em apenas um clock, quando houver a troca de valores que ele vai dar em 1
-assign confirma_rise = confirma & ~confirma_prev;
-
-
 
 //FSM pra definir qual estado ir depois
 
@@ -92,7 +103,7 @@ always @(posedge clock) begin  // botei em clock
     
     P1SETUP: 
     begin
-       if(confirma_rise) begin
+        if(confirma_rise) begin
             PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
         end else begin
             PE <= P1SETUP; UE <= P1SETUP;
@@ -101,7 +112,11 @@ always @(posedge clock) begin  // botei em clock
 
     P2SETUP: 
     begin 
-      
+        if(confirma_rise) begin
+            PE <= CHECK_IF_EQUAL; UE <= P2SETUP;
+        end else begin
+            PE <= P2SETUP; UE <= P2SETUP;
+        end
     end
    
 
@@ -109,10 +124,10 @@ always @(posedge clock) begin  // botei em clock
     CHECK_IF_EQUAL: 
     begin
         if(is_diff) begin
-            if(UE == P1SETUP) begin PE <= P2SETUP end
-            if(UE == P2SETUP) begin PE <= P1GUESS end
-            if(UE == P1GUESS) begin PE <= RESULT end
-            if(UE == P2GUESS) begin PE <= RESULT end
+            if(UE == P1SETUP) begin PE <= P2SETUP; end
+            if(UE == P2SETUP) begin PE <= P1GUESS; end
+            if(UE == P1GUESS) begin PE <= RESULT; end
+            if(UE == P2GUESS) begin PE <= RESULT; end
         end else begin
             PE <= UE;
         end
@@ -171,12 +186,15 @@ endcase
 
 end
 
-always_comb begin
-        num1 < (SW[0], SW[1], SW[2], SW[3]);
-        num2 < (SW[4], SW[5], SW[6], SW[7]);
-        num3 < (SW[8], SW[9], SW[10], SW[11]);
-        num4 < (SW[12], SW[13], SW[14], SW[15]);
-end
+logic [3:0] num1, num2, num3, num4;
+
+
+// always_comb begin
+//         num1 = {SW[0], SW[1], SW[2], SW[3]};
+//         num2 = {SW[4], SW[5], SW[6], SW[7]};
+//         num3 = {SW[8], SW[9], SW[10], SW[11]};
+//         num4 = {SW[12], SW[13], SW[14], SW[15]};
+// end
 
 // bloco principal
 
@@ -188,7 +206,9 @@ always @(posedge clock or posedge reset) begin
 
         P2SECRET <= 0;  
 
-        GUESS <= 0;
+        //P1GUESS_reg <= 0;
+        
+        //P2GUESS_reg <= 0;
 
         bulls <= 0;
 
@@ -204,14 +224,20 @@ always @(posedge clock or posedge reset) begin
 
             P1SETUP: 
             begin
-       
+                num1 <= SW[3:0];
+                num2 <= SW[7:4];
+                num3 <= SW[11:8];
+                num4 <= SW[15:12];
                 P1SECRET <= SW;
 
             end
 
             P2SETUP: 
             begin
-      
+                num1 <= SW[3:0];
+                num2 <= SW[7:4];
+                num3 <= SW[11:8];
+                num4 <= SW[15:12];
                 P2SECRET <= SW;
 
             end
@@ -232,7 +258,11 @@ always @(posedge clock or posedge reset) begin
             P1GUESS: 
 
             begin
-                P1GUESS_reg <= SW;
+                num1 <= SW[3:0];
+                num2 <= SW[7:4];
+                num3 <= SW[11:8];
+                num4 <= SW[15:12];
+                //P1GUESS_reg <= SW;
                 cows <= 0;;
                 bulls <= 0;
                 verifica <= 0;
@@ -241,7 +271,11 @@ always @(posedge clock or posedge reset) begin
             P2GUESS: 
 
             begin
-                P2GUESS_reg <= SW;
+                num1 <= SW[3:0];
+                num2 <= SW[7:4];
+                num3 <= SW[11:8];
+                num4 <= SW[15:12];
+                //P2GUESS_reg <= SW;
                 bulls <= 0;
                 cows <=0;
                 verifica <= 0;
