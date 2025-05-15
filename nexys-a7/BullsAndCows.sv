@@ -366,6 +366,18 @@ always @(posedge clock or posedge reset) begin
     // aqui é o display, é pra funcionar, pois vai atualizar tds digitos assim que mudar o estado e o clock bater, pensei em fazer posedge EA, mas nao sei se funfa
     always @(posedge clock) begin
         case (EA)
+
+            CHECK_IF_EQUAL: begin
+                d8 <= {1'b1, 5'h11, 1'b1};
+                d7 <= {1'b1, 5'h11, 1'b1};
+                d6 <= {1'b1, 5'h11, 1'b1};
+                d5 <= {1'b1, 5'h11, 1'b1};
+                d4 <= {1'b1, 5'h11, 1'b1};
+                d3 <= {1'b1, 5'h11, 1'b1};
+                d2 <= {1'b1, 5'h11, 1'b1};
+                d1 <= {1'b1, 5'h11, 1'b1};
+            end
+
             P1SETUP: begin
                 d8 <= {1'b1, 5'h5, 1'b1};
                 d7 <= {1'b1, 5'h1, 1'b1};
@@ -432,9 +444,6 @@ always @(posedge clock or posedge reset) begin
                 d3 <= {1'b1, cows, 1'b1}; // num_cows
                 d2 <= {1'b1, 5'h10, 1'b1}; // espaço
                 d1 <= {1'b1, 5'hC, 1'b1}; // C
-
-
-
 
             end
 

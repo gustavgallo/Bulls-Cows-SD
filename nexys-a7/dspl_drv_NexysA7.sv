@@ -104,6 +104,7 @@ module dspl_drv_NexysA7
       5'hE : dec_ddp[7:1] = 7'b1000100; //Y
       5'hF : dec_ddp[7:1] = 7'b0100001; //G
       5'h10: dec_ddp[7:1] = 7'b1111111; //" "
+      5'h11: dec_ddp[7:1] = 7'b1111110; //"-"
       default : dec_ddp[7:1] = 7'b1111111; //blank // tem que mudar, não teria como entrar nele
     endcase
     dec_ddp[0] = selected_dig[0]; // desliga o pontinho lá, esqueci o nome dele
