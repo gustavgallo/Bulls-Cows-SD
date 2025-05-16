@@ -28,7 +28,7 @@ dspl_drv_NexysA7 display(
 BullsAndCows game(
     .clock(clock),
     .reset(reset),
-    .confirma(confirma),
+    .confirma_rising(confirma_rising),
     .led(LED),
     .SW(SW),
     .d1(d1),
@@ -40,13 +40,20 @@ BullsAndCows game(
     .d7(d7),
     .d8(d8)
 );
+logic confirm_rising;
+edge_detector_s borda(
+    .clock(clock),
+    .reset(reset),
+    .din(confirma),
+    .rising_confirma(confirma_rising)
+);
 
 
 
 
 /*
 logic [3:0] count;
-always@ (posedge confirma)begin
+always@ (posedge confirma_rising)begin
 
 case(count)
     0:begin

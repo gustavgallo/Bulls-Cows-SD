@@ -2,13 +2,14 @@ module BullsAndCows (
 
     input clock, //clock
     input reset, // recomeça o jogo 
-    input confirma, // botao pra confirmar
+    input confirma_rising, // botao pra confirmar
     input logic[15:0] SW,    // switches
     output logic[15:0] led,  // leds dos resultados, deixei comentado por enquanto
     output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8 // aqui seleciona oq vai escrever em cada display
 );
 
 localparam NULL = 4'b1111;
+assign is_diff = (num1 != num2 && num1 != num3 && num1 != num4 && num2 != num3 && num2 != num4 && num3 != num4) ? 1 : 0;
 
 typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
     
@@ -56,44 +57,17 @@ logic [15:0] P2SECRET;
 
 //logic [15:0] //P2GUESS_reg;
 
-logic is_diff = 0;
 
-logic enable_guess_for_check = 0;
+logic switchguess = 0; // se o guess é do player 1 ou do player 2
 
-logic switchguess; // se o guess é do player 1 ou do player 2
+logic [2:0]verifica = 0;
 
-logic verifica;
+logic [2:0] bulls = 0;
 
-logic [2:0] bulls;
+logic [2:0] cows = 0;
 
-logic [2:0] cows;
+logic check_done = 0; // se já verificou se os numeros são diferentes ou não
 
-// logic confirma_prev;      // Guarda o valor anterior do botão confirma
-// logic confirma_rise;      // Indica se houve flanco de subida no botão confirma
-
-// // Detecta o flanco de subida do botão confirma
-// always_ff @(posedge clock or posedge reset) begin
-//     if (reset)
-//         confirma_prev <= 0;       // Zera ao resetar
-//     else
-//         confirma_prev <= confirma; // Atualiza com o valor atual do botão
-// end
-
-// // Sinal fica 1 apenas no ciclo em que o botão passa de 0 para 1, ou seja em apenas um clock, quando houver a troca de valores que ele vai dar em 1
-// assign confirma_rise = confirma & ~confirma_prev;
-
-logic confirma_prev = 0;
-logic confirma_rise = 0;
-
-always_ff @(posedge clock or posedge reset) begin
-    if (reset) begin
-        confirma_prev <= 0;
-        confirma_rise <= 0;
-    end else begin
-        confirma_rise <= confirma & ~confirma_prev;
-        confirma_prev <= confirma;
-    end
-end
 
 //FSM pra definir qual estado ir depois
 
@@ -103,7 +77,7 @@ always @(posedge clock) begin  // botei em clock
     
     P1SETUP: 
     begin
-        if(confirma_rise) begin
+        if(confirma_rising) begin
             PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
         end else begin
             PE <= P1SETUP; UE <= P1SETUP;
@@ -112,7 +86,7 @@ always @(posedge clock) begin  // botei em clock
 
     P2SETUP: 
     begin 
-        if(confirma_rise) begin
+        if(confirma_rising) begin
             PE <= CHECK_IF_EQUAL; UE <= P2SETUP;
         end else begin
             PE <= P2SETUP; UE <= P2SETUP;
@@ -120,22 +94,21 @@ always @(posedge clock) begin  // botei em clock
     end
    
 
-
     CHECK_IF_EQUAL: 
     begin
         if(is_diff) begin
-            if(UE == P1SETUP) begin PE <= P2SETUP; end
-            if(UE == P2SETUP) begin PE <= P1GUESS; end
-            if(UE == P1GUESS) begin PE <= RESULT; end
-            if(UE == P2GUESS) begin PE <= RESULT; end
-        end else begin
+                if(UE == P1SETUP) begin PE <= P2SETUP; end
+        else    if(UE == P2SETUP) begin PE <= P1GUESS; end
+        else    if(UE == P1GUESS) begin PE <= RESULT; end
+        else    if(UE == P2GUESS) begin PE <= RESULT; end
+        end else if(!is_diff)begin
             PE <= UE;
-        end
+        end 
     end
     
     P1GUESS:
     begin 
-        if(enable_guess_for_check) 
+        if(confirma_rising) 
         begin 
             switchguess <= 0;
             PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
@@ -146,7 +119,7 @@ always @(posedge clock) begin  // botei em clock
     end
         P2GUESS:
     begin 
-        if(enable_guess_for_check) 
+        if(confirma_rising) 
         begin 
             switchguess <= 1;
             PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
@@ -157,7 +130,7 @@ always @(posedge clock) begin  // botei em clock
     end
     RESULT:
     begin 
-        if( confirma_rise ) begin
+        if( confirma_rising ) begin
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
         end else if (switchguess && verifica == 4) begin
@@ -175,7 +148,7 @@ always @(posedge clock) begin  // botei em clock
     
     WIN:
     begin 
-        if(confirma_rise ) begin
+        if(confirma_rising ) begin
             PE = P1SETUP; UE = P1SETUP;
         end else begin
             PE = WIN; UE = WIN;
@@ -187,14 +160,6 @@ endcase
 end
 
 logic [3:0] num1, num2, num3, num4;
-
-
-// always_comb begin
-//         num1 = {SW[0], SW[1], SW[2], SW[3]};
-//         num2 = {SW[4], SW[5], SW[6], SW[7]};
-//         num3 = {SW[8], SW[9], SW[10], SW[11]};
-//         num4 = {SW[12], SW[13], SW[14], SW[15]};
-// end
 
 // bloco principal
 
@@ -215,6 +180,10 @@ always @(posedge clock or posedge reset) begin
         cows <= 0;
 
         switchguess <= 0;
+
+        verifica <= 0;
+
+        check_done <=0;
 
     end    
 
@@ -245,12 +214,7 @@ always @(posedge clock or posedge reset) begin
             CHECK_IF_EQUAL:
             begin
 
-                if( num4 != num3 && num4 != num2 && num4 != num1 && num3 != num2 && num3 != num1 && num2 != num1 ) begin
-                    is_diff <= 1;
-                end else begin
-                    is_diff <= 0;
-                end
-
+                
             end
 
 
@@ -347,14 +311,7 @@ always @(posedge clock or posedge reset) begin
                             verifica <= verifica + 1;
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
-                        d8 <= {1'b1, bulls, 1'b1}; // num_bulls
-                        d7 <= {1'b1, 5'h10, 1'b1}; // espaço
-                        d6 <= {1'b1, 5'hB, 1'b1}; // B
-                        d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
-                        d4 <= {1'b1, 5'h10, 1'b1}; //espaço
-                        d3 <= {1'b1, cows, 1'b1}; // num_cows
-                        d2 <= {1'b1, 5'h10, 1'b1}; // espaço
-                        d1 <= {1'b1, 5'hC, 1'b1}; // C
+                        
                     end
                 endcase       
             end // end do result
@@ -432,14 +389,14 @@ always @(posedge clock or posedge reset) begin
             end
 
             RESULT: begin
-                d8 <= {1 + 5'h10 + 1}; // espaço
-                d7 <= {1 + 5'h10 + 1}; // espaço
-                d6 <= {1 + 5'h10 + 1}; // espaço
-                d5 <= {1 + 5'h10 + 1}; // espaço
-                d4 <= {1 + 5'h10 + 1}; // espaço
-                d3 <= {1 + 5'h10 + 1}; // espaço
-                d2 <= {1 + 5'h10 + 1}; // espaço
-                d1 <= {1 + 5'h10 + 1}; // espaço
+                d8 <= {1'b1, bulls, 1'b1}; // num_bulls
+                d7 <= {1'b1, 5'h10, 1'b1}; // espaço
+                d6 <= {1'b1, 5'hB, 1'b1}; // B
+                d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
+                d4 <= {1'b1, 5'h10, 1'b1}; //espaço
+                d3 <= {1'b1, cows, 1'b1}; // num_cows
+                d2 <= {1'b1, 5'h10, 1'b1}; // espaço
+                d1 <= {1'b1, 5'hC, 1'b1}; // C
 
             end
 
