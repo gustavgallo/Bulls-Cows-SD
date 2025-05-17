@@ -34,7 +34,7 @@ module dspl_drv_NexysA7
   begin
     if (reset == 1'b1) begin
       dig_selection <= 3'd0;
-      selected_dig  <= 5'd0;
+      selected_dig  <= 6'd0;
       an            <= 8'b11111111; // Disable all displays
     end
     else begin

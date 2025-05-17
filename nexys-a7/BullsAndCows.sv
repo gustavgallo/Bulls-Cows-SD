@@ -35,28 +35,9 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
 state_t EA, PE, UE;
 
 
-
-//definidor dos estados
-
-always_ff @(posedge clock or posedge reset) begin
-
-    if(reset)begin
-    EA <= P1SETUP;
-    end else
-    EA <= PE;
-
-end
-
-
-
 logic [15:0] P1SECRET;
 
 logic [15:0] P2SECRET;
-
-//logic [15:0] //P1GUESS_reg;
-
-//logic [15:0] //P2GUESS_reg;
-
 
 logic switchguess = 0; // se o guess é do player 1 ou do player 2
 
@@ -71,108 +52,127 @@ logic check_done = 0; // se já verificou se os numeros são diferentes ou não
 logic start = 0; // se inicio no reset.
 
 
+
 //FSM pra definir qual estado ir depois
 
 always @(posedge clock, posedge reset) begin  // botei em clock
 
-    if(reset)begin
+    if(reset)begin     // definidor de estados
+        EA <= P1SETUP;
         PE <= P1SETUP;
         UE <= P1SETUP;
     end else begin
-
+             EA <= PE;
         if (!start) begin
-            PE <= P1SETUP;
-            UE <= P1SETUP;
-            start <= 1;
+                PE <= P1SETUP;
+                UE <= P1SETUP;
+                start <= 1;
         end else begin
             
-   case(EA)
+            case(EA)
+
+                P1SETUP: 
+                begin
+                    if(confirma_rising) begin
+                        PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
+                    end else begin
+                        PE <= P1SETUP; UE <= P1SETUP;
+                    end
+                end
+
+                P2SETUP: 
+                begin 
+                    if(confirma_rising) begin
+                        PE <= CHECK_IF_EQUAL; UE <= P2SETUP;
+                    end else begin
+                        PE <= P2SETUP; UE <= P2SETUP;
+                    end
+                end
+
+
+                 CHECK_IF_EQUAL: 
+                 begin
+                        if(is_diff) begin
+                               case(UE) 
+
+                                    P1SETUP:begin 
+                                    
+                                            PE <= P2SETUP;
+                                            check_done <= 1;
+
+                                    end
+                                    P2SETUP:begin 
+                                    
+                                            PE <= P1GUESS;
+
+                                    end
+                                    P1GUESS, P2GUESS :begin 
+                                    
+                                            PE <= RESULT;
+
+                                    end
+
+                                endcase
+                        end else if(!is_diff)
+                            begin
+                                PE <= UE;
+                            end 
+                        else PE <= CHECK_IF_EQUAL;
+                end             
     
-    P1SETUP: 
-    begin
-        if(confirma_rising) begin
-            PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
-        end else begin
-            PE <= P1SETUP; UE <= P1SETUP;
-        end
-    end
+                P1GUESS:
+                begin 
+                    if(confirma_rising) 
+                    begin 
+                        switchguess <= 0;
+                        PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
+                    end else begin
+                        PE <= P1GUESS; UE <= P1GUESS;
+                    end
 
-    P2SETUP: 
-    begin 
-        if(confirma_rising) begin
-            PE <= CHECK_IF_EQUAL; UE <= P2SETUP;
-        end else begin
-            PE <= P2SETUP; UE <= P2SETUP;
-        end
-    end
-   
+                end
+                    P2GUESS:
+                begin 
+                    if(confirma_rising) 
+                    begin 
+                        switchguess <= 1;
+                        PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
+                    end else begin
+                        PE <= P2GUESS; UE <= P2GUESS;
+                    end
 
-    CHECK_IF_EQUAL: 
-    begin
-        if(is_diff) begin
-                if(UE == P1SETUP) begin PE <= P2SETUP; end
-        else    if(UE == P2SETUP) begin PE <= P1GUESS; end
-        else    if(UE == P1GUESS) begin PE <= RESULT; end
-        else    if(UE == P2GUESS) begin PE <= RESULT; end
-        end else if(!is_diff)begin
-            PE <= UE;
-        end 
-    end
-    
-    P1GUESS:
-    begin 
-        if(confirma_rising) 
-        begin 
-            switchguess <= 0;
-            PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
-        end else begin
-            PE <= P1GUESS; UE <= P1GUESS;
-        end
+                end
+                RESULT:
+                begin 
+                    if( confirma_rising ) begin
+                    if(bulls == 4) begin
+                        PE <= WIN; UE <= RESULT;
+                    end else if (switchguess && verifica == 4) begin
+                        PE <= PRINT_BC; UE <= P1GUESS;
+                    end else if (!switchguess && verifica == 4) begin
+                        PE <= P1GUESS; UE <= P2GUESS;
+                    end
+                    end else PE <= RESULT;
+                end
 
-    end
-        P2GUESS:
-    begin 
-        if(confirma_rising) 
-        begin 
-            switchguess <= 1;
-            PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
-        end else begin
-            PE <= P2GUESS; UE <= P2GUESS;
-        end
-        
-    end
-    RESULT:
-    begin 
-        if( confirma_rising ) begin
-        if(bulls == 4) begin
-            PE <= WIN; UE <= RESULT;
-        end else if (switchguess and verifica == 4) begin
-            PE <= PRINT_BC; UE <= P1GUESS;
-        end else if (!switchguess and verifica == 4) begin
-            PE <= P1GUESS; UE <= P2GUESS;
-        end
-        end else PE <= RESULT;
-    end
+                PRINT_BC:
+                begin
 
-    PRINT_BC:
-    begin
-        
-        
-    end
-    
-    WIN:
-    begin 
-        if(confirma_rising ) begin
-            PE <= P1SETUP; UE <= P1SETUP;
-        end else begin
-            PE <= WIN; UE <= WIN;
-        end
-    end
 
-endcase
+                end
+
+                WIN:
+                begin 
+                    if(confirma_rising ) begin
+                        PE <= P1SETUP; UE <= P1SETUP;
+                    end else begin
+                        PE <= WIN; UE <= WIN;
+                    end
+                end
+
+            endcase
         end // end do else (start)
     end // end do else (reset)
-
 end
 
 logic [3:0] num1, num2, num3, num4;
@@ -187,10 +187,6 @@ always @(posedge clock or posedge reset) begin
 
         P2SECRET <= 0;  
 
-        //P1GUESS_reg <= 0;
-        
-        //P2GUESS_reg <= 0;
-
         bulls <= 0;
 
         cows <= 0;
@@ -198,8 +194,6 @@ always @(posedge clock or posedge reset) begin
         switchguess <= 0;
 
         verifica <= 0;
-
-        check_done <=0;
 
     end    
 
@@ -230,10 +224,9 @@ always @(posedge clock or posedge reset) begin
             CHECK_IF_EQUAL:
             begin
 
+
                 
             end
-
-
 
             P1GUESS: 
 
@@ -242,7 +235,6 @@ always @(posedge clock or posedge reset) begin
                 num2 <= SW[7:4];
                 num3 <= SW[11:8];
                 num4 <= SW[15:12];
-                //P1GUESS_reg <= SW;
                 cows <= 0;;
                 bulls <= 0;
                 verifica <= 0;
@@ -255,7 +247,6 @@ always @(posedge clock or posedge reset) begin
                 num2 <= SW[7:4];
                 num3 <= SW[11:8];
                 num4 <= SW[15:12];
-                //P2GUESS_reg <= SW;
                 bulls <= 0;
                 cows <=0;
                 verifica <= 0;
