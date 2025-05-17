@@ -68,11 +68,24 @@ logic [2:0] cows = 0;
 
 logic check_done = 0; // se já verificou se os numeros são diferentes ou não
 
+logic start = 0; // se inicio no reset.
+
 
 //FSM pra definir qual estado ir depois
 
-always @(posedge clock) begin  // botei em clock
+always @(posedge clock, posedge reset) begin  // botei em clock
 
+    if(reset)begin
+        PE <= P1SETUP;
+        UE <= P1SETUP;
+    end else begin
+
+        if (!start) begin
+            PE <= P1SETUP;
+            UE <= P1SETUP;
+            start <= 1;
+        end else begin
+            
    case(EA)
     
     P1SETUP: 
@@ -149,13 +162,15 @@ always @(posedge clock) begin  // botei em clock
     WIN:
     begin 
         if(confirma_rising ) begin
-            PE = P1SETUP; UE = P1SETUP;
+            PE <= P1SETUP; UE <= P1SETUP;
         end else begin
-            PE = WIN; UE = WIN;
+            PE <= WIN; UE <= WIN;
         end
     end
 
 endcase
+        end // end do else (start)
+    end // end do else (reset)
 
 end
 
