@@ -146,9 +146,9 @@ always @(posedge clock, posedge reset) begin  // botei em clock
         if( confirma_rising ) begin
         if(bulls == 4) begin
             PE <= WIN; UE <= RESULT;
-        end else if (switchguess && verifica == 4) begin
+        end else if (switchguess and verifica == 4) begin
             PE <= PRINT_BC; UE <= P1GUESS;
-        end else if (!switchguess && verifica == 4) begin
+        end else if (!switchguess and verifica == 4) begin
             PE <= P1GUESS; UE <= P2GUESS;
         end
         end else PE <= RESULT;
@@ -156,6 +156,7 @@ always @(posedge clock, posedge reset) begin  // botei em clock
 
     PRINT_BC:
     begin
+        
         
     end
     
@@ -327,6 +328,7 @@ always @(posedge clock or posedge reset) begin
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
                         
+                        verifica <= 0;
                     end
                 endcase       
             end // end do result
@@ -334,7 +336,7 @@ always @(posedge clock or posedge reset) begin
                 
                 WIN:
                 begin
-                    //ganhou!!! parabens
+                    //ganhou!!! parabens, tem q botar um led 
                 end
 
         endcase
