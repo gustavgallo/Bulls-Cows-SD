@@ -453,4 +453,11 @@ always @(posedge clock or posedge reset) begin
         endcase
     end
 
+assign led[15:13] = PE;      // PE à esquerda
+assign led[12:8]  = 5'b0;    // apagados
+assign led[7]     = is_diff; // is_diff no meio
+assign led[6:3]   = 4'b0;    // apagados
+assign led[2:0]   = EA;      // EA à direita
+
+
 endmodule
