@@ -39,7 +39,11 @@ logic [15:0] P1SECRET;
 
 logic [15:0] P2SECRET;
 
+logic [3:0] num1, num2, num3, num4;
+
 logic switchguess = 0; // se o guess é do player 1 ou do player 2
+
+logic enable_print_bc = 0;
 
 logic [2:0]verifica = 0;
 
@@ -50,6 +54,7 @@ logic [2:0] cows = 0;
 logic check_done = 0; // se já verificou se os numeros são diferentes ou não
 
 logic start = 0; // se inicio no reset.
+
 
 
 
@@ -144,15 +149,13 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                 end
                 RESULT:
                 begin 
-                    if( confirma_rising ) begin
                     if(bulls == 4) begin
                         EA <= WIN; UE <= RESULT;
-                    end else if (switchguess && verifica == 4) begin
+                    end else if (switchguess && enable_print_bc) begin
                         EA <= PRINT_BC; PE <= P1GUESS;
-                    end else if (!switchguess && verifica == 4) begin
+                    end else if (!switchguess && enable_print_bc) begin
                         EA <= PRINT_BC; PE <= P2GUESS;
                     end
-                    end else EA <= RESULT;
                 end
 
                 PRINT_BC:
@@ -177,9 +180,6 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
             endcase
         end 
     end 
-
-
-logic [3:0] num1, num2, num3, num4;
 
 // bloco principal
 
@@ -280,7 +280,9 @@ always @(posedge clock or posedge reset) begin
                         cows <= cows + 1;
                         num4 <= NULL;
                         end
+                        enable_print_bc <= 0;
                         verifica <= verifica + 1;
+                        
                     end
                     1: begin
                         if (num3 == P1SECRET[11:8]) begin
@@ -294,6 +296,7 @@ always @(posedge clock or posedge reset) begin
                             cows <= cows + 1;
                             num3 <= NULL;
                         end
+                        enable_print_bc <= 0;
                         verifica <= verifica + 1;
                     end
                     2: begin
@@ -307,6 +310,7 @@ always @(posedge clock or posedge reset) begin
                                 cows <= cows + 1;
                                 num2 <= NULL;
                             end
+                            enable_print_bc <= 0;
                             verifica <= verifica + 1;
                     end
                     3: begin
@@ -319,10 +323,10 @@ always @(posedge clock or posedge reset) begin
                                 cows <= cows + 1;
                                 num1 <= NULL;
                             end
+                            enable_print_bc <= 1;
                             verifica <= verifica + 1;
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
-                        
                         verifica <= 0;
                     end
                 endcase       
@@ -341,6 +345,12 @@ always @(posedge clock or posedge reset) begin
     end // end do always
 
     // aqui é o display, é pra funcionar, pois vai atualizar tds digitos assim que mudar o estado e o clock bater, pensei em fazer posedge EA, mas nao sei se funfa
+
+    logic[4:0] bhex, chex;
+
+   assign bhex = (bulls <= 3) ? {2'b00, bulls} : 5'h4;
+   assign chex = (cows  <= 3) ? {2'b00, cows}  : 5'h4;
+
     always @(posedge clock) begin
         case (EA)
 
@@ -401,24 +411,26 @@ always @(posedge clock or posedge reset) begin
             end
 
             RESULT: begin
-                d8 <= {1'b1, bulls, 1'b1}; // num_bulls
+
+                d8 <= {1'b1, 5'h11, 1'b1}; // num_bulls
                 d7 <= {1'b1, 5'h10, 1'b1}; // espaço
                 d6 <= {1'b1, 5'hB, 1'b1}; // B
                 d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
                 d4 <= {1'b1, 5'h10, 1'b1}; //espaço
-                d3 <= {1'b1, cows, 1'b1}; // num_cows
+                d3 <= {1'b1, 5'h11, 1'b1}; // num_cows
                 d2 <= {1'b1, 5'h10, 1'b1}; // espaço
                 d1 <= {1'b1, 5'hC, 1'b1}; // C
 
             end
 
             PRINT_BC:begin
-                d8 <= {1'b1, bulls, 1'b1}; // num_bulls
+
+                d8 <= {1'b1, bhex, 1'b1}; // num_bulls
                 d7 <= {1'b1, 5'h10, 1'b1}; // espaço
                 d6 <= {1'b1, 5'hB, 1'b1}; // B
                 d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
                 d4 <= {1'b1, 5'h10, 1'b1}; //espaço
-                d3 <= {1'b1, cows, 1'b1}; // num_cows
+                d3 <= {1'b1, chex, 1'b1}; // num_cows
                 d2 <= {1'b1, 5'h10, 1'b1}; // espaço
                 d1 <= {1'b1, 5'hC, 1'b1}; // C
 
@@ -436,14 +448,14 @@ always @(posedge clock or posedge reset) begin
             end
 
             default: begin
-                d8 <= {1 + 5'h10 + 1}; // espaço
-                d7 <= {1 + 5'h10 + 1}; // espaço
-                d6 <= {1 + 5'h10 + 1}; // espaço
-                d5 <= {1 + 5'h10 + 1}; // espaço
-                d4 <= {1 + 5'h10 + 1}; // espaço
-                d3 <= {1 + 5'h10 + 1}; // espaço
-                d2 <= {1 + 5'h10 + 1}; // espaço
-                d1 <= {1 + 5'h10 + 1}; // espaço
+                d8 <= {1 , 5'h10 , 1}; // espaço
+                d7 <= {1 , 5'h10 , 1}; // espaço
+                d6 <= {1 , 5'h10 , 1}; // espaço
+                d5 <= {1 , 5'h10 , 1}; // espaço
+                d4 <= {1 , 5'h10 , 1}; // espaço
+                d3 <= {1 , 5'h10 , 1}; // espaço
+                d2 <= {1 , 5'h10 , 1}; // espaço
+                d1 <= {1 , 5'h10 , 1}; // espaço
             end
         endcase
     end
