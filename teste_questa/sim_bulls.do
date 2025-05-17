@@ -1,5 +1,7 @@
 
 vlib work
+vlog -sv BullsAndCows.sv
+vlog -sv edge_detector_s.sv
 vlog -sv top_nexys_a7.sv
 vlog -sv dspl_drv_NexysA7.sv
 vlog -sv tb_bulls_and_cows.sv
