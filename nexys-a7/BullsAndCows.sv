@@ -55,37 +55,32 @@ logic start = 0; // se inicio no reset.
 
 //FSM pra definir qual estado ir depois
 
-always @(posedge clock, posedge reset) begin  // botei em clock
+always_ff @(posedge clock, posedge reset) begin  // botei em clock
 
     if(reset)begin     // definidor de estados
         EA <= P1SETUP;
         PE <= P1SETUP;
         UE <= P1SETUP;
     end else begin
-             EA <= PE;
-        if (!start) begin
-                PE <= P1SETUP;
-                UE <= P1SETUP;
-                start <= 1;
-        end else begin
             
+       
             case(EA)
 
                 P1SETUP: 
                 begin
                     if(confirma_rising) begin
-                        PE <= CHECK_IF_EQUAL; UE <= P1SETUP;
+                        EA <= CHECK_IF_EQUAL; UE <= P1SETUP;
                     end else begin
-                        PE <= P1SETUP; UE <= P1SETUP;
+                        EA <= P1SETUP; UE <= P1SETUP;
                     end
                 end
 
                 P2SETUP: 
                 begin 
                     if(confirma_rising) begin
-                        PE <= CHECK_IF_EQUAL; UE <= P2SETUP;
+                        EA <= CHECK_IF_EQUAL; UE <= P2SETUP;
                     end else begin
-                        PE <= P2SETUP; UE <= P2SETUP;
+                        EA <= P2SETUP; UE <= P2SETUP;
                     end
                 end
 
@@ -97,27 +92,32 @@ always @(posedge clock, posedge reset) begin  // botei em clock
 
                                     P1SETUP:begin 
                                     
-                                            PE <= P2SETUP;
-                                            check_done <= 1;
+                                            EA <= P2SETUP;
+                                        
 
                                     end
                                     P2SETUP:begin 
                                     
-                                            PE <= P1GUESS;
+                                            EA <= P1GUESS;
 
                                     end
                                     P1GUESS, P2GUESS :begin 
                                     
-                                            PE <= RESULT;
+                                            EA <= RESULT;
+
+                                    end
+                                    default:begin 
+                                    
+                                            EA <= CHECK_IF_EQUAL;
 
                                     end
 
                                 endcase
                         end else if(!is_diff)
                             begin
-                                PE <= UE;
+                                EA <= UE;
                             end 
-                        else PE <= CHECK_IF_EQUAL;
+                        else EA <= CHECK_IF_EQUAL;
                 end             
     
                 P1GUESS:
@@ -125,9 +125,9 @@ always @(posedge clock, posedge reset) begin  // botei em clock
                     if(confirma_rising) 
                     begin 
                         switchguess <= 0;
-                        PE <= CHECK_IF_EQUAL; UE <= P1GUESS;
+                        EA <= CHECK_IF_EQUAL; UE <= P1GUESS;
                     end else begin
-                        PE <= P1GUESS; UE <= P1GUESS;
+                        EA <= P1GUESS; UE <= P1GUESS;
                     end
 
                 end
@@ -136,9 +136,9 @@ always @(posedge clock, posedge reset) begin  // botei em clock
                     if(confirma_rising) 
                     begin 
                         switchguess <= 1;
-                        PE <= CHECK_IF_EQUAL; UE <= P2GUESS;
+                        EA <= CHECK_IF_EQUAL; UE <= P2GUESS;
                     end else begin
-                        PE <= P2GUESS; UE <= P2GUESS;
+                        EA <= P2GUESS; UE <= P2GUESS;
                     end
 
                 end
@@ -146,34 +146,38 @@ always @(posedge clock, posedge reset) begin  // botei em clock
                 begin 
                     if( confirma_rising ) begin
                     if(bulls == 4) begin
-                        PE <= WIN; UE <= RESULT;
+                        EA <= WIN; UE <= RESULT;
                     end else if (switchguess && verifica == 4) begin
-                        PE <= PRINT_BC; UE <= P1GUESS;
+                        EA <= PRINT_BC; PE <= P1GUESS;
                     end else if (!switchguess && verifica == 4) begin
-                        PE <= P1GUESS; UE <= P2GUESS;
+                        EA <= PRINT_BC; PE <= P2GUESS;
                     end
-                    end else PE <= RESULT;
+                    end else EA <= RESULT;
                 end
 
                 PRINT_BC:
                 begin
-
+                    if(confirma_rising) begin
+                        EA <= PE;
+                    end else begin
+                        EA <= PRINT_BC; 
+                    end
 
                 end
 
                 WIN:
                 begin 
                     if(confirma_rising ) begin
-                        PE <= P1SETUP; UE <= P1SETUP;
+                        EA <= P1SETUP; UE <= P1SETUP;
                     end else begin
-                        PE <= WIN; UE <= WIN;
+                        EA <= WIN; UE <= WIN;
                     end
                 end
 
             endcase
-        end // end do else (start)
-    end // end do else (reset)
-end
+        end 
+    end 
+
 
 logic [3:0] num1, num2, num3, num4;
 
@@ -444,7 +448,7 @@ always @(posedge clock or posedge reset) begin
         endcase
     end
 
-assign led[15:13] = PE;      // PE à esquerda
+
 assign led[12:8]  = 5'b0;    // apagados
 assign led[7]     = is_diff; // is_diff no meio
 assign led[6:3]   = 4'b0;    // apagados
