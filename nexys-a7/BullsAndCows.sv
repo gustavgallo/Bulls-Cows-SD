@@ -133,7 +133,7 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                 begin 
                     if(confirma_rising) 
                     begin 
-                        switchguess <= 0; // tem que mudar aqui, ele ta contabilizando a vitoria pro errado
+                        //switchguess <= 0; // tem que mudar aqui, ele ta contabilizando a vitoria pro errado
                         EA <= CHECK_IF_EQUAL; UE <= P1GUESS;
                     end else begin
                         EA <= P1GUESS; UE <= P1GUESS;
@@ -144,7 +144,7 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                 begin 
                     if(confirma_rising) 
                     begin 
-                        switchguess <= 1;
+                        //switchguess <= 1;
                         EA <= CHECK_IF_EQUAL; UE <= P2GUESS;
                     end else begin
                         EA <= P2GUESS; UE <= P2GUESS;
@@ -197,6 +197,10 @@ always @(posedge clock or posedge reset) begin
 
         bulls <= 0;
 
+        check_done <= 0;
+
+        enable_print_bc <= 0;
+
         cows <= 0;
 
         switchguess <= 0;
@@ -246,7 +250,7 @@ always @(posedge clock or posedge reset) begin
                 num2 <= SW[7:4];
                 num3 <= SW[11:8];
                 num4 <= SW[15:12];
-                cows <= 0;;
+                cows <= 0;
                 bulls <= 0;
                 verifica <= 0;
             end
@@ -259,7 +263,7 @@ always @(posedge clock or posedge reset) begin
                 num3 <= SW[11:8];
                 num4 <= SW[15:12];
                 bulls <= 0;
-                cows <=0;
+                cows <= 0;
                 verifica <= 0;
             end
 
@@ -272,7 +276,9 @@ always @(posedge clock or posedge reset) begin
                      // tem que zerar o verifica e fazer tudo em clocks separados para não ficar sempre cows <= cows + 1 (0 <= 0 + 1)
 
             begin
-                case(verifica) // não testei na fpga, mudei pra ficar mais facil de ler, pode ter algum erro de sintaxe, logica acho dificil ter
+
+
+                    case(verifica) // não testei na fpga, mudei pra ficar mais facil de ler, pode ter algum erro de sintaxe, logica acho dificil ter
                     0: begin
                         if (num4 == P1SECRET[15:12]) begin
 
@@ -330,10 +336,11 @@ always @(posedge clock or posedge reset) begin
                                 cows <= cows + 1;
                                 num1 <= NULL;
                             end
-                            enable_print_bc <= 0;
+                            enable_print_bc <= 1;
                             verifica <= verifica + 1;
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
+                        switchguess <= ~switchguess;
                         enable_print_bc <= 1;
                         verifica <= 0;
                     end
