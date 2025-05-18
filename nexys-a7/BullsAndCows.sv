@@ -133,7 +133,7 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                 begin 
                     if(confirma_rising) 
                     begin 
-                        switchguess <= 0;
+                        switchguess <= 0; // tem que mudar aqui, ele ta contabilizando a vitoria pro errado
                         EA <= CHECK_IF_EQUAL; UE <= P1GUESS;
                     end else begin
                         EA <= P1GUESS; UE <= P1GUESS;
@@ -330,10 +330,11 @@ always @(posedge clock or posedge reset) begin
                                 cows <= cows + 1;
                                 num1 <= NULL;
                             end
-                            enable_print_bc <= 1;
+                            enable_print_bc <= 0;
                             verifica <= verifica + 1;
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
+                        enable_print_bc <= 1;
                         verifica <= 0;
                     end
                 endcase       
@@ -364,8 +365,8 @@ always @(posedge clock or posedge reset) begin
 
     logic[4:0] bhex, chex;
 
-   assign bhex = (bulls <= 3) ? {2'b00, bulls} : 5'h4;
-   assign chex = (cows  <= 3) ? {2'b00, cows}  : 5'h4;
+   assign bhex = {2'b00, bulls};
+   assign chex = {2'b00, cows};
 
     always @(posedge clock) begin
         case (EA)
@@ -480,8 +481,8 @@ always @(posedge clock or posedge reset) begin
     end
 
 //mapeamento dos leds, pra ver as vitórias
-    assign LED[15:8] <= p1_score;
-    assign LED[7:0] <= p2_score;
+    assign led[15:8] = p1_score;
+    assign led[7:0] = p2_score;
 
 
 endmodule
