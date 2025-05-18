@@ -55,6 +55,10 @@ logic check_done = 0; // se já verificou se os numeros são diferentes ou não
 
 logic start = 0; // se inicio no reset.
 
+// leds para indicar vitórias
+logic [7:0] p1_score = 8'b00000000;
+
+logic [7:0] p2_score = 8'b00000000;
 
 
 
@@ -199,6 +203,10 @@ always @(posedge clock or posedge reset) begin
 
         verifica <= 0;
 
+        p1_score <= 0;
+
+        p2_score <= 0;
+
     end    
 
     else begin // mudei, tava dentro do case por algum motivo
@@ -227,7 +235,6 @@ always @(posedge clock or posedge reset) begin
 
             CHECK_IF_EQUAL:
             begin
-
 
                 
             end
@@ -335,7 +342,16 @@ always @(posedge clock or posedge reset) begin
                 
                 WIN:
                 begin
-                    //ganhou!!! parabens, tem q botar um led 
+                    // soma o contador de leds
+                 if(confirma_rising ) begin
+                        if (!switchguess && p1_score != 8'b11111111) begin
+                            p1_score <= (p1_score >> 1) | 8'b10000000; // acende da esquerda
+                        end
+                        else if (switchguess && p2_score != 8'b11111111) begin
+                            p2_score <= (p2_score << 1) | 8'b00000001; // acende da direita
+                        end
+                 end
+                    
                 end
 
         endcase
@@ -445,6 +461,8 @@ always @(posedge clock or posedge reset) begin
                 d3 <= {1'b1, 5'h7, 1'b1};
                 d2 <= {1'b1, 5'hE, 1'b1};
                 d1 <= {1'b1, 5'h7, 1'b1};
+
+
             end
 
             default: begin
@@ -456,15 +474,14 @@ always @(posedge clock or posedge reset) begin
                 d3 <= {1 , 5'h10 , 1}; // espaço
                 d2 <= {1 , 5'h10 , 1}; // espaço
                 d1 <= {1 , 5'h10 , 1}; // espaço
+
             end
         endcase
     end
 
-
-assign led[12:8]  = 5'b0;    // apagados
-assign led[7]     = is_diff; // is_diff no meio
-assign led[6:3]   = 4'b0;    // apagados
-assign led[2:0]   = EA;      // EA à direita
+//mapeamento dos leds, pra ver as vitórias
+    assign LED[15:8] <= p1_score;
+    assign LED[7:0] <= p2_score;
 
 
 endmodule
