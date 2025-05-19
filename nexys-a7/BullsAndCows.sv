@@ -8,10 +8,10 @@ module BullsAndCows (
     output logic[6:0] d1, d2, d3, d4, d5, d6, d7, d8 // aqui seleciona oq vai escrever em cada display
 );
 
-localparam NULL = 4'b1111;
+
 assign is_diff = (num1 != num2 && num1 != num3 && num1 != num4 && num2 != num3 && num2 != num4 && num3 != num4) ? 1 : 0;
 
-typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
+typedef enum logic [3:0] { // tava 1:0, coloquei 2:0 pra caber os estados
     
     P1SETUP,
 
@@ -23,7 +23,9 @@ typedef enum logic [2:0] { // tava 1:0, coloquei 2:0 pra caber os estados
 
     CHECK_IF_EQUAL,
 
-    RESULT,
+    RESULTP1,
+
+    RESULTP2,
 
     PRINT_BC,
 
@@ -41,8 +43,6 @@ logic [15:0] P2SECRET;
 
 logic [3:0] num1, num2, num3, num4;
 
-logic switchguess = 0; // se o guess é do player 1 ou do player 2
-
 logic enable_print_bc = 0;
 
 logic [2:0]verifica = 0;
@@ -50,10 +50,6 @@ logic [2:0]verifica = 0;
 logic [2:0] bulls = 0;
 
 logic [2:0] cows = 0;
-
-logic check_done = 0; // se já verificou se os numeros são diferentes ou não
-
-logic start = 0; // se inicio no reset.
 
 // leds para indicar vitórias
 logic [7:0] p1_score = 8'b00000000;
@@ -110,11 +106,18 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                                             EA <= P1GUESS;
 
                                     end
-                                    P1GUESS, P2GUESS :begin 
+                                    P1GUESS:begin 
                                     
-                                            EA <= RESULT;
+                                            EA <= RESULTP1;
 
                                     end
+
+                                    P2GUESS:begin 
+                                    
+                                            EA <= RESULTP2;
+
+                                    end
+
                                     default:begin 
                                     
                                             EA <= CHECK_IF_EQUAL;
@@ -151,15 +154,22 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                     end
 
                 end
-                RESULT:
+                RESULTP1:
                 begin 
                     if(bulls == 4) begin
-                        EA <= WIN; UE <= RESULT;
-                    end else if (switchguess && enable_print_bc) begin
-                        EA <= PRINT_BC; PE <= P1GUESS;
-                    end else if (!switchguess && enable_print_bc) begin
+                        EA <= WIN; UE <= RESULTP1;
+                    end else if (enable_print_bc) begin
                         EA <= PRINT_BC; PE <= P2GUESS;
-                    end
+                    end 
+                end
+
+                 RESULTP2:
+                begin 
+                    if(bulls == 4) begin
+                        EA <= WIN; UE <= RESULTP2;
+                    end else if (enable_print_bc) begin
+                        EA <= PRINT_BC; PE <= P1GUESS;
+                    end 
                 end
 
                 PRINT_BC:
@@ -175,9 +185,9 @@ always_ff @(posedge clock, posedge reset) begin  // botei em clock
                 WIN:
                 begin 
                     if(confirma_rising ) begin
-                        EA <= P1SETUP; UE <= P1SETUP;
+                        EA <= P1SETUP; 
                     end else begin
-                        EA <= WIN; UE <= WIN;
+                        EA <= WIN; 
                     end
                 end
 
@@ -197,13 +207,9 @@ always @(posedge clock or posedge reset) begin
 
         bulls <= 0;
 
-        check_done <= 0;
-
         enable_print_bc <= 0;
 
         cows <= 0;
-
-        switchguess <= 0;
 
         verifica <= 0;
 
@@ -267,7 +273,79 @@ always @(posedge clock or posedge reset) begin
                 verifica <= 0;
             end
 
-            RESULT: // num4 → posição 0
+            
+
+            // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            RESULTP1: // ESSE É O DO P2 EIN
+
+                
+            begin
+
+
+                    case(verifica) // não testei na fpga, mudei pra ficar mais facil de ler, pode ter algum erro de sintaxe, logica acho dificil ter
+                    0: begin
+                        if (num4 == P2SECRET[15:12]) begin
+
+                        bulls <= bulls + 1;
+
+
+                        end else if (
+
+                        (num4 == P2SECRET[11:8] || num4 == P2SECRET[7:4] || num4 == P2SECRET[3:0])) begin
+
+                        cows <= cows + 1;
+                        end
+                        enable_print_bc <= 0;
+                        verifica <= verifica + 1;
+                        
+                    end
+                    1: begin
+                        if (num3 == P2SECRET[11:8]) begin
+
+                            bulls <= bulls + 1;
+
+                        end else if (
+
+                            (num3 == P2SECRET[15:12] || num3 == P2SECRET[7:4] || num3 == P2SECRET[3:0])) begin
+                            cows <= cows + 1;
+                        end
+                        enable_print_bc <= 0;
+                        verifica <= verifica + 1;
+                    end
+                    2: begin
+                        if (num2 == P2SECRET[7:4]) begin
+                                bulls <= bulls + 1;
+
+                            end else if (
+
+                                (num2 == P2SECRET[15:12] || num2 == P2SECRET[11:8] || num2 == P2SECRET[3:0])) begin
+                                cows <= cows + 1;
+                            end
+                            enable_print_bc <= 0;
+                            verifica <= verifica + 1;
+                    end
+                    3: begin
+                         // num1 → posição 3
+                            if (num1 == P2SECRET[3:0] && verifica == 3) begin
+                                bulls <= bulls + 1;
+
+                            end else if ((num1 == P2SECRET[15:12] || num1 == P2SECRET[11:8] || num1 == P2SECRET[7:4])) begin
+                                cows <= cows + 1;
+                            end
+                            enable_print_bc <= 1;
+                            verifica <= verifica + 1;
+                    end
+                    4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
+                        
+                        verifica <= 0;
+                    end
+                endcase       
+            end // end do result
+
+        // ******************************************************************************************************************************
+
+            RESULTP2: // num4 → posição 0
 
                      //vai verificar se há bulls e/ou cows, se houver vai colocar NULL no local que houve essa incidencia e não fazer mais nada no clock
 
@@ -284,14 +362,12 @@ always @(posedge clock or posedge reset) begin
 
                         bulls <= bulls + 1;
 
-                        num4 <= NULL; //agora NULL é um localparam para 4'b1111, ou seja, num4 <= 4'b1111, oq não pode ocorrer nos outros
-
                         end else if (
 
                         (num4 == P1SECRET[11:8] || num4 == P1SECRET[7:4] || num4 == P1SECRET[3:0])) begin
 
                         cows <= cows + 1;
-                        num4 <= NULL;
+                        
                         end
                         enable_print_bc <= 0;
                         verifica <= verifica + 1;
@@ -301,13 +377,11 @@ always @(posedge clock or posedge reset) begin
                         if (num3 == P1SECRET[11:8]) begin
 
                             bulls <= bulls + 1;
-                            num3 <= NULL;
 
                         end else if (
 
                             (num3 == P1SECRET[15:12] || num3 == P1SECRET[7:4] || num3 == P1SECRET[3:0])) begin
                             cows <= cows + 1;
-                            num3 <= NULL;
                         end
                         enable_print_bc <= 0;
                         verifica <= verifica + 1;
@@ -315,47 +389,61 @@ always @(posedge clock or posedge reset) begin
                     2: begin
                         if (num2 == P1SECRET[7:4]) begin
                                 bulls <= bulls + 1;
-                                num2 <= NULL;
 
                             end else if (
 
                                 (num2 == P1SECRET[15:12] || num2 == P1SECRET[11:8] || num2 == P1SECRET[3:0])) begin
                                 cows <= cows + 1;
-                                num2 <= NULL;
                             end
                             enable_print_bc <= 0;
                             verifica <= verifica + 1;
                     end
                     3: begin
                          // num1 → posição 3
-                            if (num1 == P1SECRET[3:0] && verifica == 3) begin
+                            if (num1 == P1SECRET[3:0]) begin
                                 bulls <= bulls + 1;
-                                num1 <= NULL;
 
                             end else if ((num1 == P1SECRET[15:12] || num1 == P1SECRET[11:8] || num1 == P1SECRET[7:4])) begin
                                 cows <= cows + 1;
-                                num1 <= NULL;
                             end
                             enable_print_bc <= 1;
                             verifica <= verifica + 1;
                     end
                     4: begin //ideia, imprimir o resultado, x B y C aqui, dai não precisa de um outro estado só pra essa impressão
-                        switchguess <= ~switchguess;
-                        enable_print_bc <= 1;
+                        
                         verifica <= 0;
                     end
                 endcase       
             end // end do result
                
-                
+                PRINT_BC:
+                begin
+                    enable_print_bc <= 0;
+                    verifica <= 0;
+                end
+
+
                 WIN:
                 begin
                     // soma o contador de leds
+                
+                 P1SECRET <= 0;
+
+                P2SECRET <= 0;  
+
+                bulls <= 0;
+
+                enable_print_bc <= 0;
+
+                cows <= 0;
+
+                verifica <= 0;
+
                  if(confirma_rising ) begin
-                        if (!switchguess && p1_score != 8'b11111111) begin
+                        if (UE == RESULTP1) begin
                             p1_score <= (p1_score >> 1) | 8'b10000000; // acende da esquerda
                         end
-                        else if (switchguess && p2_score != 8'b11111111) begin
+                        else if (UE == RESULTP2) begin
                             p2_score <= (p2_score << 1) | 8'b00000001; // acende da direita
                         end
                  end
@@ -434,18 +522,6 @@ always @(posedge clock or posedge reset) begin
                 d1 <= {1'b1, 5'h6, 1'b1};
             end
 
-            RESULT: begin
-
-                d8 <= {1'b1, 5'h11, 1'b1}; // num_bulls
-                d7 <= {1'b1, 5'h10, 1'b1}; // espaço
-                d6 <= {1'b1, 5'hB, 1'b1}; // B
-                d5 <= {1'b1, 5'h10, 1'b1}; // espaço 
-                d4 <= {1'b1, 5'h10, 1'b1}; //espaço
-                d3 <= {1'b1, 5'h11, 1'b1}; // num_cows
-                d2 <= {1'b1, 5'h10, 1'b1}; // espaço
-                d1 <= {1'b1, 5'hC, 1'b1}; // C
-
-            end
 
             PRINT_BC:begin
 
@@ -474,14 +550,14 @@ always @(posedge clock or posedge reset) begin
             end
 
             default: begin
-                d8 <= {1 , 5'h10 , 1}; // espaço
-                d7 <= {1 , 5'h10 , 1}; // espaço
-                d6 <= {1 , 5'h10 , 1}; // espaço
-                d5 <= {1 , 5'h10 , 1}; // espaço
-                d4 <= {1 , 5'h10 , 1}; // espaço
-                d3 <= {1 , 5'h10 , 1}; // espaço
-                d2 <= {1 , 5'h10 , 1}; // espaço
-                d1 <= {1 , 5'h10 , 1}; // espaço
+                d8 <= {8'b11111111};
+                d7 <= {8'b11111111}; // espaço
+                d6 <= {8'b11111111}; // espaço
+                d5 <= {8'b11111111}; // espaço
+                d4 <= {8'b11111111}; // espaço
+                d3 <= {8'b11111111}; // espaço
+                d2 <= {8'b11111111}; // espaço
+                d1 <= {8'b11111111}; // espaço
 
             end
         endcase
