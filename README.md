@@ -17,7 +17,7 @@ This project implements the classic Bulls & Cows game on an FPGA board. Players 
 - 🖥 AMD Vivado (for synthesis & implementation)
 
 ## 🎥 Video Demonstration
-▶️ [Watch on YouTube]([https://youtube.com](https://www.youtube.com/watch?v=5R5E47pdgIY)) (link to be updated)
+▶️ [Watch on YouTube](https://www.youtube.com/watch?v=5R5E47pdgIY)
 
 ## 👨‍💻 Contributors
 - Gustavo Tibolla Gallo - Developer
